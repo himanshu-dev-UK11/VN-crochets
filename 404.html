@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Page not found | VN crochet</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .not-found-shell {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+    }
+    .not-found-card {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      display: grid;
+      gap: 16px;
+    }
+    .not-found-art {
+      font-size: clamp(80px, 20vw, 120px);
+      line-height: 1;
+      animation: bob 2.6s ease-in-out infinite;
+    }
+    .not-found-card h1 {
+      font-size: clamp(26px, 6vw, 38px);
+      margin: 0;
+      line-height: 1.1;
+    }
+    .not-found-card p {
+      color: var(--soft);
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .not-found-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    @keyframes bob { 50% { transform: translateY(-10px) rotate(-4deg); } }
+  </style>
+</head>
+<body>
+
+  <header class="hud">
+    <a class="chip logo" href="/" style="text-decoration:none;color:inherit">
+      <i>🧶</i><span>VN crochet</span>
+    </a>
+  </header>
+
+  <div class="not-found-shell">
+    <div class="not-found-card">
+      <div class="panel">
+        <div class="not-found-art" role="img" aria-label="Lost yarn ball">🧶</div>
+        <h1>This thread leads nowhere.</h1>
+        <p>The page you're looking for has wandered off — maybe it was never here, or the link got tangled somewhere along the way.</p>
+        <div class="not-found-actions">
+          <a class="btn" href="/">Back to the shop</a>
+        </div>
+        <p style="margin-top:16px;font-size:14px">
+          Looking for something specific?
+          <a href="/" style="color:var(--ink);font-weight:800">Browse the collection →</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

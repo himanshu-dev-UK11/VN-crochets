@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+ <title>VN crochet — Handmade Crochet Friends</title>
+
+ <!-- SEO -->
+ <meta name="description" content="VN crochet makes small-batch handmade crochet friends, desk companions, and thoughtful gifts. Browse finished pieces or send a custom idea.">
+ <meta name="robots" content="index, follow">
+ <link rel="canonical" href="https://vncrochet.com/">
+
+ <!-- Open Graph (WhatsApp, Instagram, Facebook previews) -->
+ <meta property="og:type" content="website">
+ <meta property="og:url" content="https://vncrochet.com/">
+ <meta property="og:title" content="VN crochet — Handmade Crochet Friends">
+ <meta property="og:description" content="Small-batch handmade crochet pieces, desk companions, and thoughtful gifts. Browse the collection or start a custom idea.">
+ <meta property="og:image" content="https://vncrochet.com/og-image.png">
+ <meta property="og:image:width" content="1200">
+ <meta property="og:image:height" content="630">
+ <meta property="og:locale" content="en_IN">
+ <meta property="og:site_name" content="VN crochet">
+
+ <!-- Twitter / X card -->
+ <meta name="twitter:card" content="summary_large_image">
+ <meta name="twitter:title" content="VN crochet — Handmade Crochet Friends">
+ <meta name="twitter:description" content="Small-batch handmade crochet pieces, desk companions, and thoughtful gifts.">
+ <meta name="twitter:image" content="https://vncrochet.com/og-image.png">
+
+ <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+ <header class="hud"><div class="chip logo"><i>🧶</i><span>VN crochet</span></div><nav class="tabs" role="tablist" aria-label="Sections"><button role="tab" aria-selected="true" data-view="shop">Shop</button><button role="tab" aria-selected="false" data-view="order">Custom Work</button><button role="tab" aria-selected="false" data-view="quests">Rewards</button></nav><div style="display:flex;gap:8px"><div class="chip f" title="Pal Points">⭐ <span id="pts">0</span></div><button class="chip bag f" id="openBag" aria-label="Open your bag">🎒 <b id="cnt">0</b></button></div></header>
+ <main>
+   <!-- ── Shop ── -->
+   <section class="view on" id="v-shop">
+     <div class="panel hero">
+       <div>
+         <span class="tag">Crochet keepsakes · India</span>
+         <h1>Handmade crochet pieces worth keeping.</h1>
+         <p class="hero-desc-full">Each piece is made by hand — a crochet friend, a desk companion, or a thoughtful gift for someone who notices small things. Browse finished pieces or start a custom idea.</p>
+         <p class="hero-desc-short">Made by hand, one at a time. Browse finished pieces or send a custom idea.</p>
+         <p style="margin-top:16px"><button class="btn" id="goShop">Browse the collection</button></p>
+       </div>
+       <div class="stage">
+         <span class="big" id="hero" role="img" aria-label="Crochet mushroom">🍄</span>
+         <small id="heroSay">Tap for a tiny hello.</small>
+       </div>
+     </div>
+     <div class="bar" id="filters"></div>
+     <div class="grid" id="grid" aria-busy="true" aria-label="Loading catalogue">
+       <div class="skel-heading skel-bone"></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+       <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
+     </div>
+     <div class="studio-notes" aria-label="Shop notes">
+       <div><b>One maker</b><span>Each piece is crocheted and checked by hand.</span></div>
+       <div><b>Bring an idea</b><span>Custom creatures, characters, and keepsakes welcome.</span></div>
+       <div><b>Built to last</b><span>Materials, size, and care are listed on every piece.</span></div>
+     </div>
+   </section>
+
+   <!-- ── Rewards ── -->
+   <section class="view" id="v-quests">
+     <div class="panel reveal">
+       <h2 class="rv" style="font-size:28px">Studio rewards</h2>
+       <p class="rv" style="color:var(--soft)">Three small milestones — a thank-you for finding a piece, building a collection, and reaching the free-shipping threshold.</p>
+       <div class="rv rewards-progress" aria-label="Reward progress">
+         <div class="meter" aria-hidden="true"><i id="qm" style="width:0"></i></div>
+         <small class="rewards-progress-label" id="qprogress-label"></small>
+       </div>
+       <div class="rv" id="qlist"></div>
+       <div class="rv rewards-explainer">
+         <div>🌟 <span>Each quest you complete moves the bar closer to 10% off your order.</span></div>
+         <div>🎒 <span>Your bag and progress are saved while you browse.</span></div>
+       </div>
+     </div>
+   </section>
+
+   <!-- ── Custom Work ── -->
+   <section class="view" id="v-order">
+     <div class="cols">
+       <div class="panel reveal">
+         <h2 class="rv" style="font-size:28px">Custom work</h2>
+         <p class="rv" style="color:var(--soft)">Have a pet, game mascot, or tiny creature in mind? Send a brief and we'll quote within 48 hours.</p>
+         <div class="rv art custom-art" style="background:var(--lav);font-size:100px">📮</div>
+         <!-- task #7 — examples and what we need -->
+         <div class="rv custom-examples">
+           <p class="custom-examples-title">Some recent requests</p>
+           <ul>
+             <li>A 20 cm golden retriever with a bandana</li>
+             <li>A tiny cactus trio in terracotta pots</li>
+             <li>A cartoon-style sleeping cat, 12 cm</li>
+             <li>A duck wearing a graduation cap</li>
+           </ul>
+         </div>
+         <div class="rv custom-checklist">
+           <p class="custom-examples-title">What helps us quote faster</p>
+           <ul>
+             <li>✔ A photo or sketch of the creature</li>
+             <li>✔ The size you have in mind</li>
+             <li>✔ Whether it's a gift (we can pack it specially)</li>
+             <li>✔ Any colour or material preferences</li>
+           </ul>
+         </div>
+       </div>
+       <div class="panel reveal">
+         <form id="req">
+           <label class="rv">Your name<input required id="rn" placeholder="Your name"></label>
+           <label class="rv">What should we make?<textarea required id="rd" rows="4" placeholder="A 20cm axolotl with a tiny party hat..."></textarea></label>
+           <label class="rv">Size<select id="rs" style="margin:0"><option>Mini (8cm)</option><option>Standard (15cm)</option><option>Large (25cm)</option></select></label>
+           <button class="rv btn g" type="submit">Send request</button>
+         </form>
+       </div>
+     </div>
+   </section>
+ </main>
+
+ <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Pal details"><div class="card" id="mcard"></div></div>
+ <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Backpack"><div class="card bagp" id="bagp"></div></div>
+ <div class="toast" id="toast" role="status"></div>
+
+ <footer style="max-width:1060px;margin:0 auto;padding:0 14px 34px;color:var(--ink)">
+   <details class="maker-note">
+     <summary>About the studio</summary>
+     <p>VN crochet is a one-person studio based in India. Cotton and milk-cotton yarns, careful stuffing, hand-stitched details — every piece is made slowly and checked before it leaves. If you have a creature or keepsake in mind that isn't in the shop, the Custom Work tab is the right place to start.</p>
+     <div><span>Cotton &amp; milk cotton</span><span>Hand-finished</span><span>Custom commissions open</span><span>Ships across India</span></div>
+   </details>
+   <div class="panel footer-bar">
+     <div>
+       <b class="f">VN crochet</b><br>
+       <small style="color:var(--soft)">Handmade crochet and yarn art.</small>
+     </div>
+   </div>
+ </footer>
+ <script type="module" src="js/app.js"></script>
+</body>
+</html>

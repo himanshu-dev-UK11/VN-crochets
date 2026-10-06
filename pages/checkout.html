@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Your order | VN crochet</title>
+
+  <!-- SEO — checkout page should not appear in search results -->
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Your order | VN crochet">
+  <meta property="og:description" content="Review and confirm your VN crochet order.">
+  <meta property="og:site_name" content="VN crochet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="checkout-page">
+  <header class="hud checkout-head">
+    <a class="chip logo" href="../index.html" aria-label="Back to the shop">
+      <i>🧶</i>VN crochet
+    </a>
+    <span class="chip mini-tag">Your order</span>
+  </header>
+
+  <main class="checkout-shell">
+    <section class="panel checkout-panel">
+      <div class="check-intro">
+        <span class="tag">Your order</span>
+        <h1>Ready to wrap your little finds?</h1>
+        <p>Fill in your details and we'll be in touch to confirm the order and arrange delivery.</p>
+      </div>
+
+      <div id="checkout-list" class="checkout-list" aria-live="polite"></div>
+    </section>
+
+    <aside class="panel checkout-panel sidebar">
+      <div class="summary-header">
+        <h2>Summary</h2>
+        <p>Packed with care and a personal check before it ships.</p>
+      </div>
+
+      <div id="checkout-totals" class="checkout-totals"></div>
+
+      <form id="checkout-form" class="checkout-form">
+        <label>
+          Your name
+          <input name="name" type="text" placeholder="Asha Narayan" required>
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" placeholder="you@example.com" required>
+        </label>
+        <label>
+          Delivery city
+          <input name="city" type="text" placeholder="Bengaluru" required>
+        </label>
+        <label>
+          Notes for the maker
+          <textarea name="notes" rows="4" placeholder="Gift wrap, colour notes, or a special date..."></textarea>
+        </label>
+        <button class="btn g" type="submit">Send order request</button>
+        <a class="btn secondary" href="../index.html">Back to shop</a>
+      </form>
+
+      <p id="checkout-status" class="checkout-status" aria-live="polite"></p>
+    </aside>
+  </main>
+
+  <script type="module" src="./checkout.js"></script>
+</body>
+</html>

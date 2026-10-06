@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /pages/checkout.html
+
+Sitemap: https://vncrochet.com/sitemap.xml

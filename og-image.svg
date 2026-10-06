@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- background -->
+  <rect width="1200" height="630" fill="#a9b8f0"/>
+  <rect x="40" y="40" width="1120" height="550" rx="40" fill="#fff5dc" stroke="#ecdcb4" stroke-width="6"/>
+
+  <!-- yarn emoji large -->
+  <text x="200" y="380" font-size="260" text-anchor="middle" dominant-baseline="auto">🧶</text>
+
+  <!-- brand name -->
+  <text x="700" y="240" font-family="Georgia, serif" font-size="88" font-weight="700" fill="#4b3d5c" text-anchor="middle">VN crochet</text>
+
+  <!-- tagline -->
+  <text x="700" y="330" font-family="Georgia, serif" font-size="42" fill="#8a7fa3" text-anchor="middle">Handmade crochet friends &amp; keepsakes</text>
+
+  <!-- detail chips -->
+  <rect x="460" y="390" width="260" height="58" rx="29" fill="#f7a1b8"/>
+  <text x="590" y="427" font-family="Georgia, serif" font-size="28" fill="#4a2038" text-anchor="middle">Made by hand</text>
+
+  <rect x="740" y="390" width="240" height="58" rx="29" fill="#ffc94d"/>
+  <text x="860" y="427" font-family="Georgia, serif" font-size="28" fill="#4a2038" text-anchor="middle">Ships in India</text>
+
+  <!-- subtle dot pattern -->
+  <pattern id="dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
+    <circle cx="1" cy="1" r="1.5" fill="#ffffff44"/>
+  </pattern>
+  <rect x="40" y="40" width="1120" height="550" rx="40" fill="url(#dots)"/>
+</svg>

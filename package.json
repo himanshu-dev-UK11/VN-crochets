@@ -1,0 +1,19 @@
+{
+  "name": "varsha-website",
+  "version": "1.0.0",
+  "description": "VN crochet is a handmade crochet and art-and-craft storefront prototype. The current experience is intentionally warm, tactile, and a little playful: visitors can browse small-batch pals, inspect a crafting recipe, choose a ribbon colour, manage a backpack, complete shop quests, and submit a custom request.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "2.8.6",
+    "express": "5.2.1",
+    "multer": "2.4.0"
+  }
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio desk | VN crochet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header class="admin-header">
+    <a class="brand" href="../index.html"><span>🧶</span><strong>VN crochet</strong><small>Studio desk</small></a>
+    <div class="header-actions">
+      <button class="ghost" id="downloadCatalog" type="button">Download catalog</button>
+      <a class="shop-link" href="../index.html">View shop ↗</a>
+    </div>
+  </header>
+
+  <main class="admin-shell">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Private maker workspace</p>
+        <h1>Keep the shelf fresh.</h1>
+        <p>Add a new creation once and see it in the shop catalog. This browser-only desk is a prototype, so changes are saved locally on this device.</p>
+      </div>
+      <div class="stats" aria-label="Catalog summary">
+        <strong id="productCount">0</strong><span>creations listed</span>
+        <strong id="draftCount">0</strong><span>drafts</span>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="catalog-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">Catalog</p><h2>All creations</h2></div>
+          <button class="primary small" id="newProduct" type="button">+ New creation</button>
+        </div>
+        <label class="search-box">Search creations<input id="catalogSearch" type="search" placeholder="Mushroom, forest, gift..."></label>
+        <div id="catalogList" class="catalog-list" aria-live="polite"></div>
+      </section>
+
+      <aside class="editor-panel" id="editorPanel" aria-hidden="true">
+        <div class="panel-heading">
+          <div><p class="eyebrow">Editor</p><h2 id="editorTitle">New creation</h2></div>
+          <div class="editor-actions"><button class="text-button" id="clearForm" type="button">Clear</button><button class="close-editor" id="closeEditor" type="button" aria-label="Close editor">×</button></div>
+        </div>
+
+        <form id="productForm">
+          <input id="productId" type="hidden">
+          <div class="form-grid two">
+            <label>Creation name<input id="name" required maxlength="50" placeholder="Moss the Mushroom"></label>
+            <label>Collection<select id="category"><option>Forest</option><option>Pond</option><option>Meadow</option><option>Custom</option></select></label>
+          </div>
+          <div class="form-grid three">
+            <label>Price (INR)<input id="price" required type="number" min="0" step="1" placeholder="599"></label>
+            <label>Size<input id="size" required placeholder="12 cm"></label>
+            <label>Stock<input id="stock" required type="number" min="0" step="1" value="1"></label>
+          </div>
+          <div class="form-grid two">
+            <label>Level<input id="level" type="number" min="1" max="9" value="1"></label>
+            <label>Card colour<input id="background" type="color" value="#ffc9c9"></label>
+          </div>
+          <label>Preview art / emoji<input id="emoji" required maxlength="4" placeholder="🍄"></label>
+          <div class="image-upload-label">
+            <span>Product image</span>
+            <span class="hint">JPG, PNG, or WebP · up to 4 MB</span>
+            <div class="image-drop-zone" id="imageDropZone" role="button" tabindex="0" aria-label="Choose product image">
+              <img id="imageThumb" class="image-thumb" alt="Selected product image">
+              <div class="image-drop-inner" id="imageDropInner">
+                <span class="image-drop-icon">🖼️</span>
+                <span class="image-drop-text">Click to choose or drag an image here</span>
+              </div>
+              <div class="image-selected-badge" id="imageSelectedBadge" hidden>
+                <span class="image-check">✓</span>
+                <span id="imageFileName" class="image-file-name"></span>
+                <button type="button" class="image-clear-btn" id="imageClearBtn" aria-label="Remove image">✕</button>
+              </div>
+            </div>
+          </div>
+          <input id="image" type="file" accept="image/png,image/jpeg,image/webp" aria-hidden="true" tabindex="-1" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none">
+          <label>Short description<textarea id="description" required rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
+          <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
+          <label>Care note<input id="care" placeholder="Spot clean gently"></label>
+          <div class="form-grid two checks">
+            <label class="check"><input id="featured" type="checkbox" checked> Featured on shelf</label>
+            <label class="check"><input id="active" type="checkbox" checked> Published</label>
+          </div>
+          <div class="form-actions">
+            <button class="primary" type="submit">Upload to catalog</button>
+            <button class="danger ghost" id="deleteProduct" type="button" hidden>Delete creation</button>
+          </div>
+          <p id="saveStatus" class="status" role="status"></p>
+        </form>
+      </aside>
+
+      <section class="preview-panel" id="inspectorPanel">
+        <div class="panel-heading"><div><p class="eyebrow">Creation details</p><h2 id="inspectorTitle">Select a creation</h2></div><span class="preview-label">Click a catalog row to inspect</span></div>
+        <div id="preview" class="product-inspector"></div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
