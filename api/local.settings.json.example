@@ -1,0 +1,18 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+
+    "COSMOS_ENDPOINT": "https://YOUR-COSMOS-ACCOUNT.documents.azure.com:443/",
+    "COSMOS_KEY": "YOUR-COSMOS-PRIMARY-KEY==",
+    "COSMOS_DB": "vncrochet",
+
+    "BLOB_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=YOUR-STORAGE-ACCOUNT;AccountKey=YOUR-STORAGE-KEY;EndpointSuffix=core.windows.net",
+    "BLOB_CONTAINER": "product-images",
+
+    "JWT_SECRET": "replace-with-a-long-random-string-min-32-chars",
+    "ADMIN_USERNAME": "varsha",
+    "ADMIN_PASSWORD": "replace-with-your-chosen-password"
+  }
+}

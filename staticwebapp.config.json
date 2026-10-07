@@ -1,12 +1,16 @@
 {
   "routes": [
     {
-      "route": "/admin/*",
-      "statusCode": 404
-    },
-    {
       "route": "/checkout",
       "rewrite": "/pages/checkout.html"
+    },
+    {
+      "route": "/admin",
+      "rewrite": "/admin/index.html"
+    },
+    {
+      "route": "/admin/",
+      "rewrite": "/admin/index.html"
     },
     {
       "route": "/*.html",
@@ -27,6 +31,18 @@
       }
     },
     {
+      "route": "/admin/admin.js",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
+    },
+    {
+      "route": "/admin/admin.css",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
       "route": "/og-image.*",
       "headers": {
         "Cache-Control": "public, max-age=604800"
@@ -39,9 +55,12 @@
       "/css/*",
       "/js/*",
       "/admin/*",
+      "/api/*",
+      "/uploads/*",
       "/*.svg",
       "/*.png",
       "/*.jpg",
+      "/*.webp",
       "/*.ico",
       "/*.txt",
       "/*.xml",
@@ -60,7 +79,7 @@
     "X-XSS-Protection": "1; mode=block",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://wa.me; navigate-to 'self' https://wa.me https://api.whatsapp.com"
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.blob.core.windows.net; connect-src 'self' https://*.blob.core.windows.net https://wa.me; navigate-to 'self' https://wa.me https://api.whatsapp.com"
   },
   "mimeTypes": {
     ".svg": "image/svg+xml",

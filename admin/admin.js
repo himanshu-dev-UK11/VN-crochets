@@ -1,3 +1,95 @@
+// ── Auth gate ─────────────────────────────────────────────────────────────────
+// Token is stored in sessionStorage (cleared when the tab closes).
+const TOKEN_KEY = 'vn_admin_token';
+
+function getToken() { return sessionStorage.getItem(TOKEN_KEY); }
+function setToken(t) { sessionStorage.setItem(TOKEN_KEY, t); }
+function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
+
+// Wrap every API call to automatically attach the Bearer token and handle 401s
+async function apiFetch(url, options = {}) {
+  const token = getToken();
+  const headers = { ...(options.headers || {}) };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  // Don't set Content-Type for FormData (browser sets it with boundary)
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(url, { ...options, headers });
+  if (res.status === 401) {
+    clearToken();
+    showLoginScreen('Session expired. Please log in again.');
+    throw new Error('Unauthorised');
+  }
+  return res;
+}
+
+// ── Login screen ──────────────────────────────────────────────────────────────
+function showLoginScreen(message = '') {
+  document.body.innerHTML = `
+    <div class="login-shell">
+      <div class="login-card">
+        <div class="login-brand"><span>🧶</span><strong>VN crochet</strong><small>Studio desk</small></div>
+        <h1>Sign in</h1>
+        ${message ? `<p class="login-error" role="alert">${message}</p>` : '<p class="login-error" role="alert" hidden></p>'}
+        <form id="loginForm">
+          <label>Username<input id="loginUser" type="text" autocomplete="username" required placeholder="admin"></label>
+          <label>Password<input id="loginPass" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+          <button type="submit" id="loginBtn">Sign in</button>
+        </form>
+      </div>
+    </div>`;
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errEl = document.querySelector('.login-error');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    errEl.hidden = true;
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('loginUser').value.trim(),
+          password: document.getElementById('loginPass').value
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed.');
+      setToken(data.token);
+      // Reload the page so the full admin shell renders fresh
+      window.location.reload();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  });
+}
+
+// Boot: show login if no token, otherwise initialise the desk
+if (!getToken()) {
+  showLoginScreen();
+  // Stop executing the rest of the file until the login redirects/reloads
+  throw new Error('Not authenticated — login screen shown.');
+}
+
+// ── Desk shell ────────────────────────────────────────────────────────────────
+// Add a logout button to the header once the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const actions = document.querySelector('.header-actions');
+  if (actions) {
+    const logoutBtn = document.createElement('button');
+    logoutBtn.className = 'ghost';
+    logoutBtn.textContent = 'Sign out';
+    logoutBtn.addEventListener('click', () => { clearToken(); window.location.reload(); });
+    actions.prepend(logoutBtn);
+  }
+});
+
 const API = '/api';
 const $ = (selector) => document.querySelector(selector);
 const form = $('#productForm');
@@ -8,7 +100,7 @@ let catalog = [];
 
 async function loadCatalog() {
   try {
-    const res = await fetch(`${API}/catalog`);
+    const res = await apiFetch(`${API}/catalog`);
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
     catalog = await res.json();
   } catch (err) {
@@ -21,9 +113,8 @@ async function loadCatalog() {
 
 async function saveCatalog() {
   try {
-    const res = await fetch(`${API}/catalog`, {
+    const res = await apiFetch(`${API}/catalog`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(catalog)
     });
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
@@ -36,7 +127,7 @@ async function saveCatalog() {
 async function uploadImage(file) {
   const data = new FormData();
   data.append('image', file);
-  const res = await fetch(`${API}/upload`, { method: 'POST', body: data });
+  const res = await apiFetch(`${API}/upload`, { method: 'POST', body: data });
   if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
   const json = await res.json();
   return json.url; // e.g. "/uploads/1717000000-abc123.jpg"

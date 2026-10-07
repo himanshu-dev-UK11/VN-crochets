@@ -1,0 +1,16 @@
+{
+  "name": "vncrochet-api",
+  "version": "1.0.0",
+  "description": "Azure Functions API for VN crochet",
+  "main": "index.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@azure/cosmos": "4.1.1",
+    "@azure/storage-blob": "12.24.0",
+    "jsonwebtoken": "9.0.2",
+    "multer": "1.4.5-lts.1"
+  }
+}
