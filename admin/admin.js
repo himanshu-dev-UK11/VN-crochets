@@ -1,13 +1,10 @@
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const TOKEN_KEY = 'vn_admin_token';
-function getToken()    { return sessionStorage.getItem(TOKEN_KEY); }
-function setToken(t)   { sessionStorage.setItem(TOKEN_KEY, t); }
-function clearToken()  { sessionStorage.removeItem(TOKEN_KEY); }
+function getToken()   { return sessionStorage.getItem(TOKEN_KEY); }
+function setToken(t)  { sessionStorage.setItem(TOKEN_KEY, t); }
+function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
 
-// Hide the desk shell immediately — before any rendering — so it never flashes
-document.documentElement.style.visibility = 'hidden';
-
-// Authenticated fetch: attaches Bearer token, catches 401s
+// Authenticated fetch: attaches Bearer token, handles 401 by showing login
 async function apiFetch(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   const token = getToken();
@@ -18,15 +15,16 @@ async function apiFetch(url, options = {}) {
   const res = await fetch(url, { ...options, headers });
   if (res.status === 401) {
     clearToken();
-    bootAdmin(); // re-runs the gate, will show login
+    showLogin('Session expired. Please sign in again.');
     throw new Error('Unauthorised');
   }
   return res;
 }
 
-// ── Login screen ──────────────────────────────────────────────────────────────
-function showLoginScreen(message = '') {
-  document.body.innerHTML = `
+// ── Login ─────────────────────────────────────────────────────────────────────
+function showLogin(message = '') {
+  const app = document.getElementById('app');
+  app.innerHTML = `
     <div class="login-shell">
       <div class="login-card">
         <div class="login-brand"><span>🧶</span><strong>VN crochet</strong><small>Studio desk</small></div>
@@ -39,16 +37,14 @@ function showLoginScreen(message = '') {
         </form>
       </div>
     </div>`;
-  document.documentElement.style.visibility = 'visible';
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn    = document.getElementById('loginBtn');
-    const errEl  = document.getElementById('loginErr');
-    btn.disabled = true;
+    const btn   = document.getElementById('loginBtn');
+    const errEl = document.getElementById('loginErr');
+    btn.disabled    = true;
     btn.textContent = 'Signing in…';
-    errEl.hidden = true;
-
+    errEl.hidden    = true;
     try {
       const res  = await fetch('/api/login', {
         method: 'POST',
@@ -61,7 +57,7 @@ function showLoginScreen(message = '') {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed.');
       setToken(data.token);
-      window.location.reload();
+      mountDesk(); // inject desk without a page reload
     } catch (err) {
       errEl.textContent = err.message;
       errEl.hidden      = false;
@@ -71,28 +67,114 @@ function showLoginScreen(message = '') {
   });
 }
 
-// ── Boot gate — runs immediately ──────────────────────────────────────────────
-function bootAdmin() {
-  if (!getToken()) {
-    showLoginScreen();
-    return; // desk never initialises
-  }
-  // Token present — reveal the desk and initialise everything
-  document.documentElement.style.visibility = 'visible';
+// ── Desk HTML template ────────────────────────────────────────────────────────
+function deskHTML() {
+  return `
+  <header class="admin-header">
+    <a class="brand" href="../index.html"><span>🧶</span><strong>VN crochet</strong><small>Studio desk</small></a>
+    <div class="header-actions">
+      <button class="ghost" id="signOutBtn" type="button">Sign out</button>
+      <button class="ghost" id="downloadCatalog" type="button">Download catalog</button>
+      <a class="shop-link" href="../index.html">View shop ↗</a>
+    </div>
+  </header>
+
+  <main class="admin-shell">
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Private maker workspace</p>
+        <h1>Keep the shelf fresh.</h1>
+        <p>Add a new creation once and see it in the shop catalog. Changes save to the database and go live immediately.</p>
+      </div>
+      <div class="stats" aria-label="Catalog summary">
+        <strong id="productCount">0</strong><span>creations listed</span>
+        <strong id="draftCount">0</strong><span>drafts</span>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="catalog-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">Catalog</p><h2>All creations</h2></div>
+          <button class="primary small" id="newProduct" type="button">+ New creation</button>
+        </div>
+        <label class="search-box">Search creations<input id="catalogSearch" type="search" placeholder="Mushroom, forest, gift..."></label>
+        <div id="catalogList" class="catalog-list" aria-live="polite"></div>
+      </section>
+
+      <aside class="editor-panel" id="editorPanel" aria-hidden="true">
+        <div class="panel-heading">
+          <div><p class="eyebrow">Editor</p><h2 id="editorTitle">New creation</h2></div>
+          <div class="editor-actions"><button class="text-button" id="clearForm" type="button">Clear</button><button class="close-editor" id="closeEditor" type="button" aria-label="Close editor">×</button></div>
+        </div>
+        <form id="productForm">
+          <input id="productId" type="hidden">
+          <div class="form-grid two">
+            <label>Creation name<input id="name" required maxlength="50" placeholder="Moss the Mushroom"></label>
+            <label>Collection<select id="category"><option>Forest</option><option>Pond</option><option>Meadow</option><option>Custom</option></select></label>
+          </div>
+          <div class="form-grid three">
+            <label>Price (INR)<input id="price" required type="number" min="0" step="1" placeholder="599"></label>
+            <label>Size<input id="size" required placeholder="12 cm"></label>
+            <label>Stock<input id="stock" required type="number" min="0" step="1" value="1"></label>
+          </div>
+          <div class="form-grid two">
+            <label>Level<input id="level" type="number" min="1" max="9" value="1"></label>
+            <label>Card colour<input id="background" type="color" value="#ffc9c9"></label>
+          </div>
+          <label>Preview art / emoji<input id="emoji" required maxlength="4" placeholder="🍄"></label>
+          <div class="image-upload-label">
+            <span>Product image</span>
+            <span class="hint">JPG, PNG, or WebP · up to 4 MB</span>
+            <div class="image-drop-zone" id="imageDropZone" role="button" tabindex="0" aria-label="Choose product image">
+              <img id="imageThumb" class="image-thumb" alt="Selected product image">
+              <div class="image-drop-inner" id="imageDropInner">
+                <span class="image-drop-icon">🖼️</span>
+                <span class="image-drop-text">Click to choose or drag an image here</span>
+              </div>
+              <div class="image-selected-badge" id="imageSelectedBadge" hidden>
+                <span class="image-check">✓</span>
+                <span id="imageFileName" class="image-file-name"></span>
+                <button type="button" class="image-clear-btn" id="imageClearBtn" aria-label="Remove image">✕</button>
+              </div>
+            </div>
+          </div>
+          <input id="image" type="file" accept="image/png,image/jpeg,image/webp" aria-hidden="true" tabindex="-1" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none">
+          <label>Short description<textarea id="description" required rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
+          <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
+          <label>Care note<input id="care" placeholder="Spot clean gently"></label>
+          <div class="form-grid two checks">
+            <label class="check"><input id="featured" type="checkbox" checked> Featured on shelf</label>
+            <label class="check"><input id="active" type="checkbox" checked> Published</label>
+          </div>
+          <div class="form-actions">
+            <button class="primary" type="submit">Upload to catalog</button>
+            <button class="danger ghost" id="deleteProduct" type="button" hidden>Delete creation</button>
+          </div>
+          <p id="saveStatus" class="status" role="status"></p>
+        </form>
+      </aside>
+
+      <section class="preview-panel" id="inspectorPanel">
+        <div class="panel-heading"><div><p class="eyebrow">Creation details</p><h2 id="inspectorTitle">Select a creation</h2></div><span class="preview-label">Click a catalog row to inspect</span></div>
+        <div id="preview" class="product-inspector"></div>
+      </section>
+    </div>
+  </main>`;
+}
+
+// ── Mount desk ────────────────────────────────────────────────────────────────
+function mountDesk() {
+  document.getElementById('app').innerHTML = deskHTML();
   initDesk();
 }
 
-// ── Full desk initialisation (only runs when authenticated) ───────────────────
+// ── Full desk logic ───────────────────────────────────────────────────────────
 function initDesk() {
-  // Inject logout button into the header
-  const actions = document.querySelector('.header-actions');
-  if (actions) {
-    const btn = document.createElement('button');
-    btn.className   = 'ghost';
-    btn.textContent = 'Sign out';
-    btn.addEventListener('click', () => { clearToken(); window.location.reload(); });
-    actions.prepend(btn);
-  }
+  document.getElementById('signOutBtn').addEventListener('click', () => {
+    clearToken();
+    showLogin();
+  });
 
   const API = '/api';
   const $   = (sel) => document.querySelector(sel);
@@ -102,7 +184,6 @@ function initDesk() {
   let imageFile = null;
   let catalog   = [];
 
-  // ── Catalog load / save ───────────────────────────────────────────────────
   async function loadCatalog() {
     try {
       const res = await apiFetch(`${API}/catalog`);
@@ -110,7 +191,7 @@ function initDesk() {
       catalog = await res.json();
     } catch (err) {
       if (err.message !== 'Unauthorised') {
-        console.warn('Could not reach backend, falling back to empty catalog.', err);
+        console.warn('Could not reach backend.', err);
         catalog = [];
       }
     }
@@ -119,10 +200,7 @@ function initDesk() {
   }
 
   async function saveCatalog() {
-    const res = await apiFetch(`${API}/catalog`, {
-      method: 'POST',
-      body: JSON.stringify(catalog)
-    });
+    const res = await apiFetch(`${API}/catalog`, { method: 'POST', body: JSON.stringify(catalog) });
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
   }
 
@@ -131,49 +209,36 @@ function initDesk() {
     data.append('image', file);
     const res = await apiFetch(`${API}/upload`, { method: 'POST', body: data });
     if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
-    const json = await res.json();
-    return json.url;
+    return (await res.json()).url;
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  function materialsFromText(value) {
-    return value.split('\n').map((line) => line.split('|').map((p) => p.trim())).filter((parts) => parts.length === 2 && parts[0] && parts[1]);
+  function materialsFromText(v) {
+    return v.split('\n').map(l => l.split('|').map(p => p.trim())).filter(p => p.length === 2 && p[0] && p[1]);
   }
-  function materialsToText(materials = []) {
-    return materials.map((m) => m.join(' | ')).join('\n');
-  }
-  function nextId() {
-    return Math.max(0, ...catalog.map((p) => p.id)) + 1;
-  }
+  function materialsToText(m = []) { return m.map(x => x.join(' | ')).join('\n'); }
+  function nextId() { return Math.max(0, ...catalog.map(p => p.id)) + 1; }
 
   function readForm() {
     return {
-      id:       Number($('#productId').value) || nextId(),
-      n:        $('#name').value.trim(),
-      c:        $('#category').value,
-      p:        Number($('#price').value),
-      s:        $('#size').value.trim(),
-      stock:    Number($('#stock').value),
-      lv:       Number($('#level').value) || 1,
-      bg:       $('#background').value,
-      e:        $('#emoji').value.trim(),
-      image:    imageData,
-      d:        $('#description').value.trim(),
-      m:        materialsFromText($('#materials').value),
-      care:     $('#care').value.trim(),
-      featured: $('#featured').checked,
-      active:   $('#active').checked
+      id: Number($('#productId').value) || nextId(),
+      n: $('#name').value.trim(), c: $('#category').value,
+      p: Number($('#price').value), s: $('#size').value.trim(),
+      stock: Number($('#stock').value), lv: Number($('#level').value) || 1,
+      bg: $('#background').value, e: $('#emoji').value.trim(),
+      image: imageData, d: $('#description').value.trim(),
+      m: materialsFromText($('#materials').value),
+      care: $('#care').value.trim(),
+      featured: $('#featured').checked, active: $('#active').checked
     };
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   function renderList() {
-    const query   = $('#catalogSearch').value.trim().toLowerCase();
-    const visible = catalog.filter((p) => `${p.n} ${p.c} ${p.d}`.toLowerCase().includes(query));
-    $('#productCount').textContent = catalog.filter((p) => p.active).length;
-    $('#draftCount').textContent   = catalog.filter((p) => !p.active).length;
+    const q = $('#catalogSearch').value.trim().toLowerCase();
+    const visible = catalog.filter(p => `${p.n} ${p.c} ${p.d}`.toLowerCase().includes(q));
+    $('#productCount').textContent = catalog.filter(p => p.active).length;
+    $('#draftCount').textContent   = catalog.filter(p => !p.active).length;
     $('#catalogList').innerHTML = visible.length
-      ? visible.map((p) => `
+      ? visible.map(p => `
         <article class="catalog-row" data-product="${p.id}">
           <div class="art" style="background:${p.bg};${p.image ? `background-image:url('${p.image}')` : ''}">${p.image ? '' : p.e}</div>
           <div><h3>${p.n}</h3><p>${p.c} · ₹${p.p.toLocaleString('en-IN')} · ${p.stock} in stock${p.active ? '' : ' · Draft'}</p></div>
@@ -194,38 +259,36 @@ function initDesk() {
         <div class="preview-art" style="background-color:${p.bg};${p.image ? `background-image:url('${p.image}')` : ''}">${p.image ? '' : p.e || '🧶'}</div>
         <div class="inspector-copy">
           <div class="preview-meta"><span>${p.c || 'Collection'} · ${p.s || 'Size'}</span><strong>₹${(p.p || 0).toLocaleString('en-IN')}</strong></div>
-          <h3>${p.n || 'Your creation name'}</h3>
-          <p>${p.d || 'No description added yet.'}</p>
+          <h3>${p.n || 'Your creation name'}</h3><p>${p.d || 'No description yet.'}</p>
           <dl>
             <div><dt>Status</dt><dd>${p.active === false ? 'Draft' : 'Published'}</dd></div>
             <div><dt>Stock</dt><dd>${p.stock ?? 0}</dd></div>
             <div><dt>Level</dt><dd>LV ${p.lv ?? 1}</dd></div>
             <div><dt>Care</dt><dd>${p.care || 'Not added'}</dd></div>
           </dl>
-          <div class="material-list">${(p.m || []).length ? p.m.map((m) => `<span>${m[0]} <b>${m[1]}</b></span>`).join('') : '<span>No materials added yet</span>'}</div>
+          <div class="material-list">${(p.m||[]).length ? p.m.map(m=>`<span>${m[0]} <b>${m[1]}</b></span>`).join('') : '<span>No materials added yet</span>'}</div>
         </div>
       </div>`;
   }
 
   function fillForm(p) {
-    fields.forEach((field) => {
-      const el = $(`#${field}`);
-      if (field === 'productId')   el.value   = p.id;
-      else if (field === 'name')   el.value   = p.n;
-      else if (field === 'category') el.value = p.c;
-      else if (field === 'price')  el.value   = p.p;
-      else if (field === 'size')   el.value   = p.s;
-      else if (field === 'stock')  el.value   = p.stock ?? 0;
-      else if (field === 'level')  el.value   = p.lv ?? 1;
-      else if (field === 'background') el.value = p.bg;
-      else if (field === 'emoji')  el.value   = p.e;
-      else if (field === 'description') el.value = p.d;
-      else if (field === 'materials')   el.value = materialsToText(p.m);
-      else if (field === 'care')   el.value   = p.care ?? '';
-      else el.checked = p[field] !== false;
+    fields.forEach(f => {
+      const el = $(`#${f}`);
+      if      (f==='productId')   el.value   = p.id;
+      else if (f==='name')        el.value   = p.n;
+      else if (f==='category')    el.value   = p.c;
+      else if (f==='price')       el.value   = p.p;
+      else if (f==='size')        el.value   = p.s;
+      else if (f==='stock')       el.value   = p.stock ?? 0;
+      else if (f==='level')       el.value   = p.lv ?? 1;
+      else if (f==='background')  el.value   = p.bg;
+      else if (f==='emoji')       el.value   = p.e;
+      else if (f==='description') el.value   = p.d;
+      else if (f==='materials')   el.value   = materialsToText(p.m);
+      else if (f==='care')        el.value   = p.care ?? '';
+      else el.checked = p[f] !== false;
     });
-    imageData = p.image || '';
-    imageFile = null;
+    imageData = p.image || ''; imageFile = null;
     renderImagePreview();
     $('#editorTitle').textContent = `Edit ${p.n}`;
     $('#deleteProduct').hidden = false;
@@ -233,153 +296,103 @@ function initDesk() {
   }
 
   function clearForm() {
-    form.reset();
-    $('#productId').value   = '';
-    imageData               = '';
-    imageFile               = null;
-    $('#image').value       = '';
-    $('#editorTitle').textContent = 'New creation';
-    $('#deleteProduct').hidden    = true;
-    $('#saveStatus').textContent  = '';
-    renderPreview();
-    renderImagePreview();
+    form.reset(); $('#productId').value = ''; imageData = ''; imageFile = null;
+    $('#image').value = ''; $('#editorTitle').textContent = 'New creation';
+    $('#deleteProduct').hidden = true; $('#saveStatus').textContent = '';
+    renderPreview(); renderImagePreview();
   }
 
   function renderImagePreview(fileName) {
-    const thumb  = $('#imageThumb');
-    const badge  = $('#imageSelectedBadge');
-    const nameEl = $('#imageFileName');
-    const zone   = $('#imageDropZone');
+    const thumb = $('#imageThumb'), badge = $('#imageSelectedBadge'),
+          nameEl = $('#imageFileName'), zone = $('#imageDropZone');
     if (imageData) {
-      thumb.src = imageData;
-      thumb.classList.add('visible');
-      zone.classList.add('has-image');
-      if (badge)  badge.hidden  = false;
+      thumb.src = imageData; thumb.classList.add('visible'); zone.classList.add('has-image');
+      if (badge) badge.hidden = false;
       if (nameEl) nameEl.textContent = fileName || (imageData.startsWith('/uploads/') ? imageData.split('/').pop() : 'Image selected');
     } else {
-      thumb.src = '';
-      thumb.classList.remove('visible');
-      zone.classList.remove('has-image');
-      if (badge)  badge.hidden  = true;
-      if (nameEl) nameEl.textContent = '';
+      thumb.src = ''; thumb.classList.remove('visible'); zone.classList.remove('has-image');
+      if (badge) badge.hidden = true; if (nameEl) nameEl.textContent = '';
     }
   }
 
-  function openEditor() {
-    $('#editorPanel').classList.add('open');
-    $('#editorPanel').setAttribute('aria-hidden', 'false');
-    document.body.classList.add('editor-open');
-    $('#name').focus();
-  }
-  function closeEditor() {
-    $('#editorPanel').classList.remove('open');
-    $('#editorPanel').setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('editor-open');
-  }
+  function openEditor()  { $('#editorPanel').classList.add('open'); $('#editorPanel').setAttribute('aria-hidden','false'); document.body.classList.add('editor-open'); $('#name').focus(); }
+  function closeEditor() { $('#editorPanel').classList.remove('open'); $('#editorPanel').setAttribute('aria-hidden','true'); document.body.classList.remove('editor-open'); }
 
-  // ── Event listeners ───────────────────────────────────────────────────────
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    $('#saveStatus').textContent = 'Saving…';
-    try {
-      if (imageFile) {
-        $('#saveStatus').textContent = 'Uploading image…';
-        imageData = await uploadImage(imageFile);
-        imageFile = null;
-      }
-      const product = readForm();
-      const index   = catalog.findIndex((e) => e.id === product.id);
-      if (index >= 0) catalog[index] = product;
-      else catalog.push(product);
-      await saveCatalog();
-      renderList();
-      fillForm(product);
-      $('#saveStatus').textContent = `${product.n} saved and live in the shop.`;
-    } catch (err) {
-      $('#saveStatus').textContent = `Save failed: ${err.message}`;
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  document.addEventListener('input', (event) => {
-    if (event.target.closest('#productForm')) renderPreview();
-    if (event.target.id === 'catalogSearch') renderList();
-  });
-
-  $('#image').addEventListener('change', (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 4 * 1024 * 1024) { event.target.value = ''; $('#saveStatus').textContent = 'Choose an image smaller than 4 MB.'; return; }
-    imageFile = file;
-    const reader = new FileReader();
-    reader.addEventListener('load', () => { imageData = String(reader.result); renderImagePreview(file.name); renderPreview(); });
-    reader.readAsDataURL(file);
-  });
-
-  $('#imageDropZone').addEventListener('click',   (e) => { if (e.target.id !== 'imageClearBtn') $('#image').click(); });
-  $('#imageDropZone').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#image').click(); } });
-  $('#imageClearBtn').addEventListener('click',   (e) => { e.stopPropagation(); imageData = ''; imageFile = null; $('#image').value = ''; renderImagePreview(); renderPreview(); });
-  $('#imageDropZone').addEventListener('dragover', (e) => { e.preventDefault(); $('#imageDropZone').classList.add('drag-over'); });
-  $('#imageDropZone').addEventListener('dragleave', () => { $('#imageDropZone').classList.remove('drag-over'); });
-  $('#imageDropZone').addEventListener('drop', (e) => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
-    $('#imageDropZone').classList.remove('drag-over');
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true; $('#saveStatus').textContent = 'Saving…';
+    try {
+      if (imageFile) { $('#saveStatus').textContent = 'Uploading image…'; imageData = await uploadImage(imageFile); imageFile = null; }
+      const product = readForm();
+      const idx = catalog.findIndex(x => x.id === product.id);
+      if (idx >= 0) catalog[idx] = product; else catalog.push(product);
+      await saveCatalog(); renderList(); fillForm(product);
+      $('#saveStatus').textContent = `${product.n} saved and live in the shop.`;
+    } catch (err) { $('#saveStatus').textContent = `Save failed: ${err.message}`; }
+    finally { btn.disabled = false; }
+  });
+
+  document.addEventListener('input', e => {
+    if (e.target.closest('#productForm')) renderPreview();
+    if (e.target.id === 'catalogSearch') renderList();
+  });
+
+  $('#image').addEventListener('change', e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    if (file.size > 4*1024*1024) { e.target.value=''; $('#saveStatus').textContent='Choose an image smaller than 4 MB.'; return; }
+    imageFile = file;
+    const r = new FileReader();
+    r.addEventListener('load', () => { imageData = String(r.result); renderImagePreview(file.name); renderPreview(); });
+    r.readAsDataURL(file);
+  });
+
+  $('#imageDropZone').addEventListener('click',   e => { if (e.target.id !== 'imageClearBtn') $('#image').click(); });
+  $('#imageDropZone').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); $('#image').click(); } });
+  $('#imageClearBtn').addEventListener('click',   e => { e.stopPropagation(); imageData=''; imageFile=null; $('#image').value=''; renderImagePreview(); renderPreview(); });
+  $('#imageDropZone').addEventListener('dragover', e => { e.preventDefault(); $('#imageDropZone').classList.add('drag-over'); });
+  $('#imageDropZone').addEventListener('dragleave', () => $('#imageDropZone').classList.remove('drag-over'));
+  $('#imageDropZone').addEventListener('drop', e => {
+    e.preventDefault(); $('#imageDropZone').classList.remove('drag-over');
     const file = e.dataTransfer.files?.[0];
     if (!file || !['image/jpeg','image/png','image/webp'].includes(file.type)) return;
-    if (file.size > 4 * 1024 * 1024) { $('#saveStatus').textContent = 'Choose an image smaller than 4 MB.'; return; }
+    if (file.size > 4*1024*1024) { $('#saveStatus').textContent='Choose an image smaller than 4 MB.'; return; }
     imageFile = file;
-    const reader = new FileReader();
-    reader.addEventListener('load', () => { imageData = String(reader.result); renderImagePreview(file.name); renderPreview(); });
-    reader.readAsDataURL(file);
+    const r = new FileReader();
+    r.addEventListener('load', () => { imageData = String(r.result); renderImagePreview(file.name); renderPreview(); });
+    r.readAsDataURL(file);
   });
 
-  document.addEventListener('click', async (event) => {
-    if ($('#editorPanel').classList.contains('open') && !event.target.closest('#editorPanel') && event.target.id !== 'newProduct') closeEditor();
-    const edit   = event.target.closest('[data-edit]');
-    const toggle = event.target.closest('[data-toggle]');
-    const row    = event.target.closest('[data-product]');
-    if (edit)   { fillForm(catalog.find((p) => p.id === Number(edit.dataset.edit))); openEditor(); }
-    if (toggle) {
-      const p = catalog.find((e) => e.id === Number(toggle.dataset.toggle));
-      p.active = !p.active;
-      try { await saveCatalog(); } catch { /* shown elsewhere */ }
-      renderList();
-    }
-    if (row && !event.target.closest('button')) {
-      const p = catalog.find((e) => e.id === Number(row.dataset.product));
-      if (p) renderInspector(p);
-    }
-    if (event.target.id === 'newProduct')    { clearForm(); openEditor(); }
-    if (event.target.id === 'clearForm')     clearForm();
-    if (event.target.id === 'closeEditor')   closeEditor();
-    if (event.target.id === 'deleteProduct') {
+  document.addEventListener('click', async e => {
+    if ($('#editorPanel').classList.contains('open') && !e.target.closest('#editorPanel') && e.target.id !== 'newProduct') closeEditor();
+    const edit = e.target.closest('[data-edit]'), toggle = e.target.closest('[data-toggle]'), row = e.target.closest('[data-product]');
+    if (edit)   { fillForm(catalog.find(p => p.id === Number(edit.dataset.edit))); openEditor(); }
+    if (toggle) { const p = catalog.find(x => x.id === Number(toggle.dataset.toggle)); p.active = !p.active; try { await saveCatalog(); } catch {} renderList(); }
+    if (row && !e.target.closest('button')) { const p = catalog.find(x => x.id === Number(row.dataset.product)); if (p) renderInspector(p); }
+    if (e.target.id === 'newProduct')    { clearForm(); openEditor(); }
+    if (e.target.id === 'clearForm')     clearForm();
+    if (e.target.id === 'closeEditor')   closeEditor();
+    if (e.target.id === 'deleteProduct') {
       const id = Number($('#productId').value);
-      catalog = catalog.filter((p) => p.id !== id);
-      try { await saveCatalog(); $('#saveStatus').textContent = 'Creation removed from the shop.'; }
+      catalog = catalog.filter(p => p.id !== id);
+      try { await saveCatalog(); $('#saveStatus').textContent = 'Creation removed.'; }
       catch (err) { $('#saveStatus').textContent = `Delete failed: ${err.message}`; }
-      renderList(); clearForm();
-      if (catalog[0]) renderInspector(catalog[0]);
+      renderList(); clearForm(); if (catalog[0]) renderInspector(catalog[0]);
     }
-    if (event.target.id === 'downloadCatalog') {
-      const blob = new Blob([JSON.stringify(catalog, null, 2)], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.href     = URL.createObjectURL(blob);
-      link.download = 'varsha-catalog.json';
-      link.click();
-      URL.revokeObjectURL(link.href);
+    if (e.target.id === 'downloadCatalog') {
+      const blob = new Blob([JSON.stringify(catalog,null,2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'varsha-catalog.json'; a.click(); URL.revokeObjectURL(a.href);
     }
   });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && $('#editorPanel').classList.contains('open')) closeEditor();
-  });
+  document.addEventListener('keydown', e => { if (e.key==='Escape' && $('#editorPanel').classList.contains('open')) closeEditor(); });
 
-  // Boot the desk
   loadCatalog();
 }
 
-// ── Run the gate ──────────────────────────────────────────────────────────────
-bootAdmin();
+// ── Boot ──────────────────────────────────────────────────────────────────────
+if (getToken()) {
+  mountDesk();  // already logged in — go straight to desk
+} else {
+  showLogin();  // show login form
+}
