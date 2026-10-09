@@ -2,19 +2,9 @@
   "name": "vncrochet-api",
   "version": "1.0.0",
   "description": "Azure Functions API for VN crochet",
-  "main": "src/functions/index.js",
-  "scripts": {
-    "start": "func start",
-    "deploy": "func azure functionapp publish vncrochetapi"
-  },
   "dependencies": {
     "@azure/data-tables": "^13.2.2",
-    "@azure/functions": "^4.5.0",
     "@azure/storage-blob": "^12.24.0",
-    "axios": "^1.7.7",
-    "jsonwebtoken": "^9.0.3"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "jsonwebtoken": "^9.0.2"
+  }
 }
