@@ -218,6 +218,41 @@ app.http('login', {
   }
 });
 
+
+// POST /api/login - Admin login (alternate route for compatibility)
+app.http('loginAlt', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'login',
+  handler: async (request, context) => {
+    try {
+      const { username, password } = await request.json();
+      
+      if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        const token = Buffer.from(`${username}:${password}`).toString('base64');
+        return {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: true, token })
+        };
+      }
+
+      return { 
+        status: 401, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Invalid credentials' }) 
+      };
+    } catch (err) {
+      context.log('Error during login:', err);
+      return { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Login failed' }) 
+      };
+    }
+  }
+});
+
 function checkAuth(authHeader) {
   if (!authHeader || !authHeader.startsWith('Basic ')) {
     return false;
@@ -232,3 +267,4 @@ function checkAuth(authHeader) {
     return false;
   }
 }
+
