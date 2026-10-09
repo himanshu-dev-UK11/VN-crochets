@@ -10,26 +10,16 @@ const SECRET = () => {
 const ADMIN_USER = () => process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASS = () => process.env.ADMIN_PASSWORD;
 
-/**
- * Verify submitted credentials. Returns true/false.
- */
 function checkCredentials(username, password) {
   const expectedPass = ADMIN_PASS();
   if (!expectedPass) throw new Error('ADMIN_PASSWORD must be set.');
   return username === ADMIN_USER() && password === expectedPass;
 }
 
-/**
- * Issue a signed JWT valid for 8 hours.
- */
 function issueToken() {
   return jwt.sign({ role: 'admin' }, SECRET(), { expiresIn: '8h' });
 }
 
-/**
- * Verify a token from the Authorization header.
- * Returns the decoded payload or throws.
- */
 function verifyToken(authHeader) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     const err = new Error('No token provided.');
@@ -45,19 +35,17 @@ function verifyToken(authHeader) {
   }
 }
 
-/**
- * Middleware-style helper: call at the top of any protected function.
- * Returns { payload } or writes a 401 response and returns null.
- */
 function requireAdmin(req, context) {
   try {
-    const payload = verifyToken(req.headers['authorization']);
+    // Functions v3 uses req.headers (object) not req.headers.get()
+    const authHeader = req.headers.authorization || req.headers.Authorization || req.headers['authorization'];
+    const payload = verifyToken(authHeader);
     return payload;
   } catch (err) {
     context.res = {
       status: err.status || 401,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message })
+      body: { error: err.message }
     };
     return null;
   }
