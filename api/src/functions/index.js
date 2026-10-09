@@ -94,7 +94,7 @@ app.http('getCatalog', {
   }
 });
 
-// POST /api/catalog - Add/update product (admin only)
+// POST /api/catalog - Add/update product or full catalog (admin only)
 app.http('updateCatalog', {
   methods: ['POST', 'PUT'],
   authLevel: 'anonymous',
@@ -107,41 +107,47 @@ app.http('updateCatalog', {
         return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Storage not configured' }) };
       }
 
-      const product = await request.json();
+      const body = await request.json();
+      const products = Array.isArray(body) ? body : [body];
       
-      // Only name and price are mandatory
-      if (!product.n || !product.p) {
-        return { status: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Name and price are required' }) };
+      // Save each product
+      for (const product of products) {
+        // Skip if missing required fields
+        if (!product.n || product.p === undefined || product.p === null) {
+          context.log('Skipping product missing name or price:', product);
+          continue;
+        }
+
+        const entity = {
+          partitionKey: 'product',
+          rowKey: product.id ? product.id.toString() : Date.now().toString(),
+          name: product.n,
+          emoji: product.e || '',
+          category: product.c || 'Other',
+          price: parseInt(product.p) || 0,
+          level: parseInt(product.lv) || 1,
+          bg: product.bg || '#ffc9c9',
+          size: product.s || '',
+          materials: product.m ? JSON.stringify(product.m) : JSON.stringify([]),
+          description: product.d || '',
+          care: product.care || '',
+          stock: parseInt(product.stock) || 0,
+          featured: product.featured || false,
+          active: product.active !== false,
+          imageUrl: product.image || product.img || ''
+        };
+
+        await productsTable.upsertEntity(entity);
       }
-
-      const entity = {
-        partitionKey: 'product',
-        rowKey: product.id ? product.id.toString() : Date.now().toString(),
-        name: product.n,
-        emoji: product.e || '',
-        category: product.c || 'Other',
-        price: parseInt(product.p) || 0,
-        level: parseInt(product.lv) || 1,
-        bg: product.bg || '#ffc9c9',
-        size: product.s || '',
-        materials: product.m ? JSON.stringify(product.m) : JSON.stringify([]),
-        description: product.d || '',
-        care: product.care || '',
-        stock: parseInt(product.stock) || 0,
-        featured: product.featured || false,
-        active: product.active !== false,
-        imageUrl: product.img || ''
-      };
-
-      await productsTable.upsertEntity(entity);
+      
       return { 
         status: 200, 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: true, id: entity.rowKey }) 
+        body: JSON.stringify({ success: true }) 
       };
     } catch (err) {
       context.log('Error updating catalog:', err);
-      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to update product' }) };
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: err.message || 'Failed to update product' }) };
     }
   }
 });
@@ -293,3 +299,4 @@ app.http('createOrder', {
     }
   }
 });
+

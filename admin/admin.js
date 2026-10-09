@@ -115,14 +115,14 @@ function deskHTML() {
           </div>
           <div class="form-grid three">
             <label>Price (INR)<input id="price" required type="number" min="0" step="1" placeholder="599"></label>
-            <label>Size<input id="size" required placeholder="12 cm"></label>
-            <label>Stock<input id="stock" required type="number" min="0" step="1" value="1"></label>
+            <label>Size<input id="size" placeholder="12 cm"></label>
+            <label>Stock<input id="stock" type="number" min="0" step="1" value="1"></label>
           </div>
           <div class="form-grid two">
             <label>Level<input id="level" type="number" min="1" max="9" value="1"></label>
             <label>Card colour<input id="background" type="color" value="#ffc9c9"></label>
           </div>
-          <label>Preview art / emoji<input id="emoji" required maxlength="4" placeholder="🍄"></label>
+          <label>Preview art / emoji<input id="emoji" maxlength="4" placeholder="🍄"></label>
           <div class="image-upload-label">
             <span>Product image</span>
             <span class="hint">JPG, PNG, or WebP · up to 4 MB</span>
@@ -140,7 +140,7 @@ function deskHTML() {
             </div>
           </div>
           <input id="image" type="file" accept="image/png,image/jpeg,image/webp" aria-hidden="true" tabindex="-1" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none">
-          <label>Short description<textarea id="description" required rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
+          <label>Short description<textarea id="description" rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
           <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
           <label>Care note<input id="care" placeholder="Spot clean gently"></label>
           <div class="form-grid two checks">
@@ -396,3 +396,4 @@ if (getToken()) {
 } else {
   showLogin();  // show login form
 }
+
