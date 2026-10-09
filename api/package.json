@@ -8,12 +8,12 @@
     "deploy": "func azure functionapp publish vncrochetapi"
   },
   "dependencies": {
-    "@azure/functions": "^4.5.0",
     "@azure/data-tables": "^13.2.2",
+    "@azure/functions": "^4.5.0",
     "@azure/storage-blob": "^12.24.0",
-    "axios": "^1.7.7"
+    "axios": "^1.7.7",
+    "jsonwebtoken": "^9.0.3"
   },
-  "devDependencies": {},
   "keywords": [],
   "author": "",
   "license": "ISC"

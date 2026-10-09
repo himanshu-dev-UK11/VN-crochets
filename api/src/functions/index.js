@@ -1,10 +1,54 @@
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
 const { BlobServiceClient } = require('@azure/storage-blob');
+const { checkCredentials, issueToken, requireAdmin } = require('../shared/auth');
 
 const connStr = process.env.STORAGE_CONNECTION_STRING;
-const tableClient = TableClient.fromConnectionString(connStr, 'products');
-const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
+let productsTable, ordersTable, blobService;
+
+try {
+  if (connStr) {
+    productsTable = TableClient.fromConnectionString(connStr, 'products');
+    ordersTable = TableClient.fromConnectionString(connStr, 'orders');
+    blobService = BlobServiceClient.fromConnectionString(connStr);
+  }
+} catch (err) {
+  console.error('Storage init failed:', err);
+}
+
+// POST /api/login - Admin login
+app.http('login', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'login',
+  handler: async (request, context) => {
+    try {
+      const { username, password } = await request.json();
+      
+      if (checkCredentials(username, password)) {
+        const token = issueToken();
+        return {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        };
+      }
+
+      return { 
+        status: 401, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Invalid credentials' }) 
+      };
+    } catch (err) {
+      context.log('Login error:', err);
+      return { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: err.message || 'Login failed' }) 
+      };
+    }
+  }
+});
 
 // GET /api/catalog - List all products
 app.http('getCatalog', {
@@ -13,24 +57,29 @@ app.http('getCatalog', {
   route: 'catalog',
   handler: async (request, context) => {
     try {
+      if (!productsTable) {
+        return { status: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([]) };
+      }
+      
       const products = [];
-      const entities = tableClient.listEntities();
+      const entities = productsTable.listEntities();
       for await (const entity of entities) {
         products.push({
           id: entity.rowKey,
-          n: entity.name,
-          e: entity.emoji,
-          c: entity.category,
-          p: entity.price,
-          lv: entity.level,
-          bg: entity.bg,
-          s: entity.size,
-          m: JSON.parse(entity.materials || '[]'),
-          d: entity.description,
-          care: entity.care,
-          stock: entity.stock,
-          featured: entity.featured,
-          active: entity.active
+          n: entity.name || '',
+          e: entity.emoji || '',
+          c: entity.category || '',
+          p: entity.price || 0,
+          lv: entity.level || 1,
+          bg: entity.bg || '#ffc9c9',
+          s: entity.size || '',
+          m: entity.materials ? JSON.parse(entity.materials) : [],
+          d: entity.description || '',
+          care: entity.care || '',
+          stock: entity.stock || 0,
+          featured: entity.featured || false,
+          active: entity.active !== false,
+          img: entity.imageUrl || null
         });
       }
       return {
@@ -40,7 +89,7 @@ app.http('getCatalog', {
       };
     } catch (err) {
       context.log('Error fetching catalog:', err);
-      return { status: 500, body: JSON.stringify({ error: 'Failed to fetch catalog' }) };
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to fetch catalog' }) };
     }
   }
 });
@@ -51,36 +100,75 @@ app.http('updateCatalog', {
   authLevel: 'anonymous',
   route: 'catalog',
   handler: async (request, context) => {
+    if (!requireAdmin(request, context)) return context.res;
+    
     try {
-      const auth = request.headers.get('authorization');
-      if (!checkAuth(auth)) {
-        return { status: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+      if (!productsTable) {
+        return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Storage not configured' }) };
       }
 
       const product = await request.json();
+      
+      // Only name and price are mandatory
+      if (!product.n || !product.p) {
+        return { status: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Name and price are required' }) };
+      }
+
       const entity = {
         partitionKey: 'product',
-        rowKey: product.id.toString(),
+        rowKey: product.id ? product.id.toString() : Date.now().toString(),
         name: product.n,
-        emoji: product.e,
-        category: product.c,
-        price: product.p,
-        level: product.lv,
-        bg: product.bg,
-        size: product.s,
-        materials: JSON.stringify(product.m),
-        description: product.d,
-        care: product.care,
-        stock: product.stock,
+        emoji: product.e || '',
+        category: product.c || 'Other',
+        price: parseInt(product.p) || 0,
+        level: parseInt(product.lv) || 1,
+        bg: product.bg || '#ffc9c9',
+        size: product.s || '',
+        materials: product.m ? JSON.stringify(product.m) : JSON.stringify([]),
+        description: product.d || '',
+        care: product.care || '',
+        stock: parseInt(product.stock) || 0,
         featured: product.featured || false,
-        active: product.active !== false
+        active: product.active !== false,
+        imageUrl: product.img || ''
       };
 
-      await tableClient.upsertEntity(entity);
-      return { status: 200, body: JSON.stringify({ success: true }) };
+      await productsTable.upsertEntity(entity);
+      return { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: true, id: entity.rowKey }) 
+      };
     } catch (err) {
       context.log('Error updating catalog:', err);
-      return { status: 500, body: JSON.stringify({ error: 'Failed to update catalog' }) };
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to update product' }) };
+    }
+  }
+});
+
+// DELETE /api/catalog/:id - Delete product
+app.http('deleteCatalog', {
+  methods: ['DELETE'],
+  authLevel: 'anonymous',
+  route: 'catalog/{id}',
+  handler: async (request, context) => {
+    if (!requireAdmin(request, context)) return context.res;
+    
+    try {
+      if (!productsTable) {
+        return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Storage not configured' }) };
+      }
+
+      const id = request.params.id;
+      await productsTable.deleteEntity('product', id);
+      return { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: true }) 
+      };
+    } catch (err) {
+      context.log('Error deleting product:', err);
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to delete product' }) };
     }
   }
 });
@@ -91,22 +179,24 @@ app.http('uploadImage', {
   authLevel: 'anonymous',
   route: 'upload',
   handler: async (request, context) => {
+    if (!requireAdmin(request, context)) return context.res;
+    
     try {
-      const auth = request.headers.get('authorization');
-      if (!checkAuth(auth)) {
-        return { status: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+      if (!blobService) {
+        return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Storage not configured' }) };
       }
 
       const formData = await request.formData();
       const file = formData.get('image');
-      const productId = formData.get('productId');
+      const productId = formData.get('productId') || Date.now().toString();
 
-      if (!file || !productId) {
-        return { status: 400, body: JSON.stringify({ error: 'Missing file or productId' }) };
+      if (!file) {
+        return { status: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'No file provided' }) };
       }
 
-      const containerClient = blobServiceClient.getContainerClient('product-images');
-      const blobName = `${productId}-${Date.now()}.jpg`;
+      const containerClient = blobService.getContainerClient('product-images');
+      const ext = file.name.split('.').pop() || 'jpg';
+      const blobName = `${productId}-${Date.now()}.${ext}`;
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -115,40 +205,14 @@ app.http('uploadImage', {
       });
 
       const imageUrl = blockBlobClient.url;
-      return { status: 200, body: JSON.stringify({ url: imageUrl }) };
+      return { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: imageUrl }) 
+      };
     } catch (err) {
       context.log('Error uploading image:', err);
-      return { status: 500, body: JSON.stringify({ error: 'Failed to upload image' }) };
-    }
-  }
-});
-
-// POST /api/orders - Save order (called from WhatsApp redirect)
-app.http('createOrder', {
-  methods: ['POST'],
-  authLevel: 'anonymous',
-  route: 'orders',
-  handler: async (request, context) => {
-    try {
-      const order = await request.json();
-      const orderTableClient = TableClient.fromConnectionString(connStr, 'orders');
-      
-      const entity = {
-        partitionKey: 'order',
-        rowKey: Date.now().toString(),
-        customerName: order.name,
-        phone: order.phone,
-        items: JSON.stringify(order.items),
-        total: order.total,
-        timestamp: new Date().toISOString(),
-        status: 'pending'
-      };
-
-      await orderTableClient.upsertEntity(entity);
-      return { status: 200, body: JSON.stringify({ success: true, orderId: entity.rowKey }) };
-    } catch (err) {
-      context.log('Error creating order:', err);
-      return { status: 500, body: JSON.stringify({ error: 'Failed to create order' }) };
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to upload image' }) };
     }
   }
 });
@@ -159,25 +223,25 @@ app.http('getOrders', {
   authLevel: 'anonymous',
   route: 'orders',
   handler: async (request, context) => {
+    if (!requireAdmin(request, context)) return context.res;
+    
     try {
-      const auth = request.headers.get('authorization');
-      if (!checkAuth(auth)) {
-        return { status: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+      if (!ordersTable) {
+        return { status: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([]) };
       }
 
-      const orderTableClient = TableClient.fromConnectionString(connStr, 'orders');
       const orders = [];
-      const entities = orderTableClient.listEntities();
+      const entities = ordersTable.listEntities();
       
       for await (const entity of entities) {
         orders.push({
           id: entity.rowKey,
-          customerName: entity.customerName,
-          phone: entity.phone,
-          items: JSON.parse(entity.items),
-          total: entity.total,
-          timestamp: entity.timestamp,
-          status: entity.status
+          customerName: entity.customerName || '',
+          phone: entity.phone || '',
+          items: entity.items ? JSON.parse(entity.items) : [],
+          total: entity.total || 0,
+          timestamp: entity.timestamp || '',
+          status: entity.status || 'pending'
         });
       }
 
@@ -188,83 +252,44 @@ app.http('getOrders', {
       };
     } catch (err) {
       context.log('Error fetching orders:', err);
-      return { status: 500, body: JSON.stringify({ error: 'Failed to fetch orders' }) };
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to fetch orders' }) };
     }
   }
 });
 
-// POST /api/auth/login - Admin login
-app.http('login', {
+// POST /api/orders - Save order
+app.http('createOrder', {
   methods: ['POST'],
   authLevel: 'anonymous',
-  route: 'auth/login',
+  route: 'orders',
   handler: async (request, context) => {
     try {
-      const { username, password } = await request.json();
-      
-      if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-        const token = Buffer.from(`${username}:${password}`).toString('base64');
-        return {
-          status: 200,
-          body: JSON.stringify({ success: true, token })
-        };
+      if (!ordersTable) {
+        return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Storage not configured' }) };
       }
 
-      return { status: 401, body: JSON.stringify({ error: 'Invalid credentials' }) };
+      const order = await request.json();
+      
+      const entity = {
+        partitionKey: 'order',
+        rowKey: Date.now().toString(),
+        customerName: order.name || '',
+        phone: order.phone || '',
+        items: JSON.stringify(order.items || []),
+        total: order.total || 0,
+        timestamp: new Date().toISOString(),
+        status: 'pending'
+      };
+
+      await ordersTable.upsertEntity(entity);
+      return { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: true, orderId: entity.rowKey }) 
+      };
     } catch (err) {
-      context.log('Error during login:', err);
-      return { status: 500, body: JSON.stringify({ error: 'Login failed' }) };
+      context.log('Error creating order:', err);
+      return { status: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Failed to create order' }) };
     }
   }
 });
-
-
-// POST /api/login - Admin login (alternate route for compatibility)
-app.http('loginAlt', {
-  methods: ['POST'],
-  authLevel: 'anonymous',
-  route: 'login',
-  handler: async (request, context) => {
-    try {
-      const { username, password } = await request.json();
-      
-      if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-        const token = Buffer.from(`${username}:${password}`).toString('base64');
-        return {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ success: true, token })
-        };
-      }
-
-      return { 
-        status: 401, 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Invalid credentials' }) 
-      };
-    } catch (err) {
-      context.log('Error during login:', err);
-      return { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Login failed' }) 
-      };
-    }
-  }
-});
-
-function checkAuth(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
-    return false;
-  }
-
-  try {
-    const token = authHeader.substring(6);
-    const decoded = Buffer.from(token, 'base64').toString('utf-8');
-    const [username, password] = decoded.split(':');
-    return username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD;
-  } catch {
-    return false;
-  }
-}
-
