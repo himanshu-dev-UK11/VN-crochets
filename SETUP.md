@@ -1,4 +1,4 @@
-# VN crochet — Azure backend setup guide
+ # VN crochet — Azure backend setup guide
 
 Follow these steps once to create the Azure resources and wire everything up.
 All commands run in PowerShell. You only need to do this once.
