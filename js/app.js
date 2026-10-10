@@ -7,7 +7,8 @@ const art=(product, className='', label=false)=>{
     return `<div class="art ${className}" style="background-color:${product.bg};background-image:url('${product.image}');background-position:${x}% ${y}%;background-size:${z}%;background-repeat:no-repeat;">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
   }
   return `<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
-};element.textContent=message;element.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>element.classList.remove('on'),2200)};
+};
+const toast=(message)=>{const element=$('#toast');element.textContent=message;element.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>element.classList.remove('on'),2200)};
 
 // ── Keyboard focus trap ────────────────────────────────────────────────────
 function trapFocus(container){
