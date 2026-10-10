@@ -64,12 +64,12 @@
     "bg": "#ffc9c9",
     "e": "",
     "image": "/uploads/1791597928442-vr230r0m8eb.png",
+    "imageX": 50,
+    "imageY": 50,
     "d": "",
     "m": [],
     "care": "",
     "featured": true,
-    "active": true,
-    "imageX": 50,
-    "imageY": 45
+    "active": true
   }
 ]
