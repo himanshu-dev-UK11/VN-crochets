@@ -357,7 +357,12 @@ function initDesk() {
       if (posEditor && posImg) {
         posEditor.hidden = false;
         posImg.src = imageData;
-        updatePositionPreview();
+        // Wait for image to load before positioning
+        if (posImg.complete && posImg.naturalWidth > 0) {
+          updatePositionPreview();
+        } else {
+          posImg.onload = () => updatePositionPreview();
+        }
       }
     } else {
       thumb.src = ''; thumb.classList.remove('visible'); zone.classList.remove('has-image');
@@ -373,9 +378,40 @@ function initDesk() {
     const coordX = $('#coordX');
     const coordY = $('#coordY');
     
-    if (posImg) {
-      posImg.style.objectPosition = `${x}% ${y}%`;
+    if (posImg && posImg.complete && posImg.naturalWidth > 0) {
+      // Calculate actual pixel offset for draggable positioning
+      const container = posImg.parentElement;
+      if (container) {
+        const imgNaturalRatio = posImg.naturalWidth / posImg.naturalHeight;
+        const containerRatio = container.offsetWidth / container.offsetHeight;
+        
+        let imgWidth, imgHeight, offsetX, offsetY;
+        
+        // Image covers the container (like object-fit: cover)
+        if (imgNaturalRatio > containerRatio) {
+          // Image is wider: full height, crop sides
+          imgHeight = container.offsetHeight;
+          imgWidth = imgHeight * imgNaturalRatio;
+          offsetX = -(imgWidth - container.offsetWidth) * (x / 100);
+          offsetY = 0;
+        } else {
+          // Image is taller: full width, crop top/bottom
+          imgWidth = container.offsetWidth;
+          imgHeight = imgWidth / imgNaturalRatio;
+          offsetX = 0;
+          offsetY = -(imgHeight - container.offsetHeight) * (y / 100);
+        }
+        
+        posImg.style.width = imgWidth + 'px';
+        posImg.style.height = imgHeight + 'px';
+        posImg.style.position = 'absolute';
+        posImg.style.left = offsetX + 'px';
+        posImg.style.top = offsetY + 'px';
+        posImg.style.objectFit = 'none';
+        posImg.style.objectPosition = 'initial';
+      }
     }
+    
     if (coordX) coordX.textContent = Math.round(x);
     if (coordY) coordY.textContent = Math.round(y);
   }
@@ -386,32 +422,79 @@ function initDesk() {
     if (!preview || !img) return;
     
     let isDragging = false;
-    let startX = 0, startY = 0;
-    let initialPosX = 50, initialPosY = 50;
+    let startMouseX = 0, startMouseY = 0;
+    let startImgX = 0, startImgY = 0;
     
-    const updatePosition = (clientX, clientY) => {
-      const rect = preview.getBoundingClientRect();
-      const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-      const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
-      
-      $('#imageX').value = x.toFixed(1);
-      $('#imageY').value = y.toFixed(1);
-      updatePositionPreview();
+    // Function to ensure position is updated when image is ready
+    const ensurePosition = () => {
+      if (img.complete && img.naturalWidth > 0) {
+        updatePositionPreview();
+      } else {
+        img.onload = () => updatePositionPreview();
+      }
     };
     
     const startDrag = (clientX, clientY) => {
+      // Don't start drag if image not loaded
+      if (!img.complete || img.naturalWidth === 0) return;
+      
       isDragging = true;
       preview.classList.add('dragging');
-      startX = clientX;
-      startY = clientY;
-      initialPosX = Number($('#imageX').value) || 50;
-      initialPosY = Number($('#imageY').value) || 50;
-      updatePosition(clientX, clientY);
+      
+      startMouseX = clientX;
+      startMouseY = clientY;
+      
+      // Get current image position
+      const currentLeft = parseFloat(img.style.left) || 0;
+      const currentTop = parseFloat(img.style.top) || 0;
+      startImgX = currentLeft;
+      startImgY = currentTop;
     };
     
     const onMove = (clientX, clientY) => {
       if (!isDragging) return;
-      updatePosition(clientX, clientY);
+      
+      const deltaX = clientX - startMouseX;
+      const deltaY = clientY - startMouseY;
+      
+      const newLeft = startImgX + deltaX;
+      const newTop = startImgY + deltaY;
+      
+      // Get container and image dimensions
+      const containerWidth = preview.offsetWidth;
+      const containerHeight = preview.offsetHeight;
+      const imgWidth = parseFloat(img.style.width);
+      const imgHeight = parseFloat(img.style.height);
+      
+      // Calculate max offsets (image can't move beyond showing the full container)
+      const maxOffsetX = -(imgWidth - containerWidth);
+      const maxOffsetY = -(imgHeight - containerHeight);
+      
+      // Clamp the position
+      const clampedLeft = Math.min(0, Math.max(maxOffsetX, newLeft));
+      const clampedTop = Math.min(0, Math.max(maxOffsetY, newTop));
+      
+      // Apply position
+      img.style.left = clampedLeft + 'px';
+      img.style.top = clampedTop + 'px';
+      
+      // Convert pixel position back to percentage for saving
+      let xPercent = 50, yPercent = 50;
+      
+      if (maxOffsetX < 0) {
+        xPercent = (clampedLeft / maxOffsetX) * 100;
+      }
+      if (maxOffsetY < 0) {
+        yPercent = (clampedTop / maxOffsetY) * 100;
+      }
+      
+      $('#imageX').value = xPercent.toFixed(1);
+      $('#imageY').value = yPercent.toFixed(1);
+      
+      const coordX = $('#coordX');
+      const coordY = $('#coordY');
+      if (coordX) coordX.textContent = Math.round(xPercent);
+      if (coordY) coordY.textContent = Math.round(yPercent);
     };
     
     const endDrag = () => {
@@ -435,7 +518,7 @@ function initDesk() {
     
     document.addEventListener('mouseup', endDrag);
     
-    // Touch events for mobile
+    // Touch events
     preview.addEventListener('touchstart', (e) => {
       e.preventDefault();
       const touch = e.touches[0];
@@ -462,12 +545,14 @@ function initDesk() {
         const aspect = btn.dataset.aspect;
         $('#imageAspect').value = aspect;
         preview.style.aspectRatio = aspect;
+        preview.dataset.aspect = aspect;
         
         // Update active state
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
-        updatePositionPreview();
+        // Recalculate position for new aspect
+        setTimeout(() => ensurePosition(), 10);
       });
     });
     
@@ -478,7 +563,7 @@ function initDesk() {
         e.preventDefault();
         $('#imageX').value = 50;
         $('#imageY').value = 50;
-        updatePositionPreview();
+        ensurePosition();
       });
     }
   }
