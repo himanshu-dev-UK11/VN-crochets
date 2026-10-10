@@ -128,8 +128,9 @@ function openProduct(id){
       product.m.map(material=>`<div class="mat"><span>${material[0]}</span><span>${material[1]}</span></div>`).join('')+
       `<div class="mat"><span>Size</span><span>${product.s}</span></div>`+
       careRow+
-      `<div class="ribbon-label">Ribbon: <b>${RIBBON_NAMES[color]}</b></div>`+
-      `<div class="sw" role="group" aria-label="Choose ribbon colour">${RIBBON_COLORS.map((value,index)=>`<button style="background:${value}" data-color="${index}" aria-pressed="${index===color}" aria-label="${RIBBON_NAMES[index]} ribbon" title="${RIBBON_NAMES[index]}"><span class="ribbon-check">${index===color?'✓':''}</span></button>`).join('')}</div>`+
+      (product.ribbons&&product.ribbons.length?`<div class="ribbon-label">Ribbon: <b>${RIBBON_NAMES[color]}</b></div>`+
+      `<div class="sw" role="group" aria-label="Choose ribbon colour">${product.ribbons.map(index=>`<button style="background:${RIBBON_COLORS[index]}" data-color="${index}" aria-pressed="${index===color}" aria-label="${RIBBON_NAMES[index]} ribbon" title="${RIBBON_NAMES[index]}"><span class="ribbon-check">${index===color?'✓':''}</span></button>`).join('')}</div>`:'')+
+      
       `<div style="display:flex;align-items:center;gap:12px;margin-top:10px"><div class="qty"><button data-quantity="-1" aria-label="Decrease quantity">−</button><b>${quantity}</b><button data-quantity="1" aria-label="Increase quantity">+</button></div><b class="f" style="font-size:22px">${money(product.p*quantity)}</b></div>`+
       `<p style="margin:10px 0 0"><button class="btn" data-add>Add to backpack</button></p>`+
       `</div></div>`;
@@ -140,9 +141,9 @@ function openProduct(id){
   $('#mcard').onclick=event=>{
     const target=event.target;
     if(target.closest('.x'))return closeOverlays();
-    if(target.dataset.color!==undefined){color=Number(target.dataset.color);draw();trapFocus($('#mcard'));}
+    if(target.dataset.color!==undefined&&product.ribbons&&product.ribbons.length){color=Number(target.dataset.color);draw();trapFocus($('#mcard'));}
     if(target.dataset.quantity){quantity=Math.max(1,Math.min(9,quantity+Number(target.dataset.quantity)));draw();trapFocus($('#mcard'));}
-    if(target.dataset.add!==undefined){addToCart(product.id,quantity,RIBBON_NAMES[color]);closeOverlays();}
+    if(target.dataset.add!==undefined){addToCart(product.id,quantity,(product.ribbons&&product.ribbons.length)?RIBBON_NAMES[color]:'None');closeOverlays();}
   };
 }
 

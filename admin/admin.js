@@ -179,6 +179,16 @@ function deskHTML() {
           <label>Short description<textarea id="description" rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
           <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
           <label>Care note<input id="care" placeholder="Spot clean gently"></label>
+          <div class="ribbon-control">
+            <span class="ribbon-control-label">Ribbon / colour options</span>
+            <span class="hint">Which colours shoppers can choose. Leave all off to hide the ribbon picker.</span>
+            <div class="ribbon-checks" id="ribbonChecks">
+              <label class="check ribbon-check-item"><input type="checkbox" data-ribbon="0" checked> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#fffdf7;border:2px solid #ccc;vertical-align:middle"></span> Cream</label>
+              <label class="check ribbon-check-item"><input type="checkbox" data-ribbon="1" checked> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#f7a1b8;vertical-align:middle"></span> Pink</label>
+              <label class="check ribbon-check-item"><input type="checkbox" data-ribbon="2" checked> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#a9b8f0;vertical-align:middle"></span> Periwinkle</label>
+              <label class="check ribbon-check-item"><input type="checkbox" data-ribbon="3" checked> <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#ffc94d;vertical-align:middle"></span> Gold</label>
+            </div>
+          </div>
           <div class="form-grid two checks">
             <label class="check"><input id="featured" type="checkbox" checked> Featured on shelf</label>
             <label class="check"><input id="active" type="checkbox" checked> Published</label>
@@ -268,7 +278,8 @@ function initDesk() {
       d: $('#description').value.trim(),
       m: materialsFromText($('#materials').value),
       care: $('#care').value.trim(),
-      featured: $('#featured').checked, active: $('#active').checked
+      featured: $('#featured').checked, active: $('#active').checked,
+      ribbons: [...document.querySelectorAll('#ribbonChecks [data-ribbon]')].filter(cb=>cb.checked).map(cb=>Number(cb.dataset.ribbon))
     };
   }
 
@@ -331,6 +342,10 @@ function initDesk() {
       else if (f==='care')        el.value   = p.care ?? '';
       else el.checked = p[f] !== false;
     });
+    // Populate ribbon checkboxes
+    const ribbonCbs = document.querySelectorAll('#ribbonChecks [data-ribbon]');
+    const pRibbons = p.ribbons ?? [0,1,2,3];
+    ribbonCbs.forEach(cb => { cb.checked = pRibbons.includes(Number(cb.dataset.ribbon)); });
     imageData = p.image || ''; imageFile = null;
     renderImagePreview();
     $('#editorTitle').textContent = `Edit ${p.n}`;
@@ -342,6 +357,7 @@ function initDesk() {
 
   function clearForm() {
     form.reset(); $('#productId').value = ''; imageData = ''; imageFile = null;
+    document.querySelectorAll('#ribbonChecks [data-ribbon]').forEach(cb => { cb.checked = true; });
     $('#image').value = ''; $('#editorTitle').textContent = 'New creation';
     $('#deleteProduct').hidden = true; $('#saveStatus').textContent = '';
     const submitBtn = form.querySelector('button[type="submit"]');

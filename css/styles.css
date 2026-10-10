@@ -135,7 +135,7 @@ body{background-color:var(--sky2);background-image:radial-gradient(#ffffff55 1px
   .modal .rec{
     display:block;
   }
-  .modal .rec>.art{width:100%;height:auto;min-height:0;border-radius:14px;font-size:76px!important}
+  .modal .rec>.art{width:100%;aspect-ratio:1/1;min-height:0;border-radius:14px;font-size:76px!important}
   .modal .rec>div+div{padding-top:8px}
   .modal .rec h2{font-size:23px!important;padding-right:32px}
   .modal .rec p{font-size:14px;line-height:1.25;margin:4px 0!important}
@@ -491,3 +491,9 @@ textarea[aria-invalid="true"] {
 
 
 
+
+/* ── Ribbon control in admin ── */
+.ribbon-control{display:grid;gap:6px;background:var(--card);border:2px dashed var(--line);border-radius:12px;padding:10px}
+.ribbon-control-label{font-size:13px;font-weight:700;color:var(--ink)}
+.ribbon-checks{display:flex;gap:8px;flex-wrap:wrap}
+.ribbon-check-item{display:flex;align-items:center;gap:5px;font-size:12px;padding:6px 10px;border:2px solid var(--line);border-radius:8px;background:var(--paper)}

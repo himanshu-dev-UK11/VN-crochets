@@ -24,7 +24,13 @@
     "featured": true,
     "active": true,
     "imageX": 50,
-    "imageY": 50
+    "imageY": 50,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 8,
@@ -51,7 +57,13 @@
     "featured": true,
     "active": true,
     "imageX": 50,
-    "imageY": 50
+    "imageY": 50,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 9,
@@ -64,13 +76,19 @@
     "bg": "#ffc9c9",
     "e": "",
     "image": "/uploads/1791597928442-vr230r0m8eb.png",
-    "imageX": 66,
-    "imageY": 99.4,
+    "imageX": 50,
+    "imageY": 27.5,
+    "imageZoom": 100,
     "d": "",
     "m": [],
     "care": "",
     "featured": true,
     "active": true,
-    "imageZoom": 100
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   }
 ]

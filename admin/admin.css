@@ -93,3 +93,10 @@ body.editor-open{overflow:hidden}
 .zoom-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 2px 0 #5a7fa3;cursor:grab}
 .zoom-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 2px 0 #5a7fa3;border:none;cursor:grab}
 .zoom-slider::-webkit-slider-thumb:active,.zoom-slider::-moz-range-thumb:active{cursor:grabbing}
+
+/* ── Ribbon colour control ── */
+.ribbon-control{display:grid;gap:6px;background:var(--card);border:2px dashed var(--line);border-radius:12px;padding:10px}
+.ribbon-control-label{font-size:13px;font-weight:700;color:var(--ink)}
+.ribbon-checks{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.ribbon-check-item{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border:2px solid var(--line);border-radius:8px;background:var(--paper);cursor:pointer}
+.ribbon-check-item input{width:auto;cursor:pointer}
