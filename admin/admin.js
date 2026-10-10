@@ -127,16 +127,6 @@ function deskHTML() {
             <span>Product image</span>
             <span class="hint">JPG, PNG, or WebP · up to 4 MB</span>
           </div>
-          <div class="form-grid two">
-            <label>Image horizontal position (%)
-              <input id="imageX" type="number" min="0" max="100" value="50" placeholder="50">
-              <span class="hint">0=left, 50=center, 100=right</span>
-            </label>
-            <label>Image vertical position (%)
-              <input id="imageY" type="number" min="0" max="100" value="50" placeholder="50">
-              <span class="hint">0=top, 50=middle, 100=bottom</span>
-            </label>
-          </div>
           <div class="image-upload-container">
           <div class="image-upload-container">
             <div class="image-drop-zone" id="imageDropZone" role="button" tabindex="0" aria-label="Choose product image">
@@ -151,7 +141,19 @@ function deskHTML() {
                 <button type="button" class="image-clear-btn" id="imageClearBtn" aria-label="Remove image">✕</button>
               </div>
             </div>
+            <div class="image-position-editor" id="imagePositionEditor" hidden>
+              <div class="position-label">
+                <span>Adjust image position</span>
+                <span class="hint">Drag the image to reposition</span>
+              </div>
+              <div class="position-preview" id="positionPreview">
+                <img id="positionImg" draggable="false" alt="Position preview">
+              </div>
+              <button type="button" class="text-button" id="resetPosition">Reset to center</button>
+            </div>
           </div>
+          <input id="imageX" type="hidden" value="50">
+          <input id="imageY" type="hidden" value="50">
           <input id="image" type="file" accept="image/png,image/jpeg,image/webp" aria-hidden="true" tabindex="-1" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none">
           <label>Short description<textarea id="description" rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
           <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
@@ -299,6 +301,8 @@ function initDesk() {
       else if (f==='level')       el.value   = p.lv ?? 1;
       else if (f==='background')  el.value   = p.bg;
       else if (f==='emoji')       el.value   = p.e;
+      else if (f==='imageX')      el.value   = p.imageX ?? 50;
+      else if (f==='imageY')      el.value   = p.imageY ?? 50;
       else if (f==='description') el.value   = p.d;
       else if (f==='materials')   el.value   = materialsToText(p.m);
       else if (f==='care')        el.value   = p.care ?? '';
@@ -308,6 +312,9 @@ function initDesk() {
     renderImagePreview();
     $('#editorTitle').textContent = `Edit ${p.n}`;
     $('#deleteProduct').hidden = false;
+    // Update button text for editing
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Update product';
     renderPreview();
   }
 
@@ -315,19 +322,88 @@ function initDesk() {
     form.reset(); $('#productId').value = ''; imageData = ''; imageFile = null;
     $('#image').value = ''; $('#editorTitle').textContent = 'New creation';
     $('#deleteProduct').hidden = true; $('#saveStatus').textContent = '';
+    // Update button text for new creation
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Upload to catalog';
     renderPreview(); renderImagePreview();
   }
 
   function renderImagePreview(fileName) {
     const thumb = $('#imageThumb'), badge = $('#imageSelectedBadge'),
           nameEl = $('#imageFileName'), zone = $('#imageDropZone');
+    const posEditor = $('#imagePositionEditor'), posImg = $('#positionImg');
+    
     if (imageData) {
       thumb.src = imageData; thumb.classList.add('visible'); zone.classList.add('has-image');
       if (badge) badge.hidden = false;
       if (nameEl) nameEl.textContent = fileName || (imageData.startsWith('/uploads/') ? imageData.split('/').pop() : 'Image selected');
+      
+      // Show position editor with image
+      if (posEditor && posImg) {
+        posEditor.hidden = false;
+        posImg.src = imageData;
+        updatePositionPreview();
+      }
     } else {
       thumb.src = ''; thumb.classList.remove('visible'); zone.classList.remove('has-image');
       if (badge) badge.hidden = true; if (nameEl) nameEl.textContent = '';
+      if (posEditor) posEditor.hidden = true;
+    }
+  }
+  
+  function updatePositionPreview() {
+    const posImg = $('#positionImg');
+    const x = Number($('#imageX').value) || 50;
+    const y = Number($('#imageY').value) || 50;
+    if (posImg) {
+      posImg.style.objectPosition = `${x}% ${y}%`;
+    }
+  }
+  
+  function initImagePositionDrag() {
+    const preview = $('#positionPreview');
+    const img = $('#positionImg');
+    if (!preview || !img) return;
+    
+    let isDragging = false;
+    
+    const updatePosition = (e) => {
+      const rect = preview.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+      $('#imageX').value = Math.round(x);
+      $('#imageY').value = Math.round(y);
+      updatePositionPreview();
+    };
+    
+    preview.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      preview.style.cursor = 'grabbing';
+      updatePosition(e);
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        e.preventDefault();
+        updatePosition(e);
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        preview.style.cursor = 'grab';
+      }
+    });
+    
+    // Reset button
+    const resetBtn = $('#resetPosition');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        $('#imageX').value = 50;
+        $('#imageY').value = 50;
+        updatePositionPreview();
+      });
     }
   }
 
@@ -403,6 +479,7 @@ function initDesk() {
 
   document.addEventListener('keydown', e => { if (e.key==='Escape' && $('#editorPanel').classList.contains('open')) closeEditor(); });
 
+  initImagePositionDrag();
   loadCatalog();
 }
 
