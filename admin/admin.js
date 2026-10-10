@@ -359,6 +359,8 @@ function initDesk() {
         posEditor.hidden = false;
         // Show image as background so drag maps directly to background-position
         posPreview.style.backgroundImage = `url('${imageData}')`;
+        posPreview.style.backgroundSize = 'cover';
+        posPreview.style.backgroundRepeat = 'no-repeat';
         updatePositionPreview();
       }
     } else {

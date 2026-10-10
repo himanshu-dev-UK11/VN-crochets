@@ -68,7 +68,7 @@ body.editor-open{overflow:hidden}
 .preset-btn.active{border-color:var(--blue);background:var(--blue);color:#fff}
 
 .position-preview-container{position:relative}
-.position-preview{position:relative;width:100%;aspect-ratio:0.75;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#f5f5f5 center/cover no-repeat;cursor:grab;user-select:none;touch-action:none;transition:border-color .15s}
+.position-preview{position:relative;width:100%;aspect-ratio:0.75;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:#f5f5f5 center/cover no-repeat;background-size:cover;cursor:grab;user-select:none;touch-action:none;transition:border-color .15s}
 .position-preview:hover{border-color:var(--blue)}
 .position-preview.dragging{cursor:grabbing;border-color:var(--pink)}
 .position-preview img{display:none}
