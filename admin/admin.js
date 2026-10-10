@@ -357,11 +357,21 @@ function initDesk() {
         posEditor.hidden = false;
         posImg.src = imageData;
         // Wait for image to load before positioning
-        if (posImg.complete && posImg.naturalWidth > 0) {
-          updatePositionPreview();
-        } else {
-          posImg.onload = () => updatePositionPreview();
-        }
+        const tryPosition = () => {
+          if (posImg.complete && posImg.naturalWidth > 0) {
+            // Give container time to render with dimensions
+            setTimeout(() => {
+              updatePositionPreview();
+              // Retry if still no dimensions
+              if (posImg.style.width === '' || posImg.style.width === '0px') {
+                setTimeout(updatePositionPreview, 100);
+              }
+            }, 50);
+          } else {
+            posImg.onload = tryPosition;
+          }
+        };
+        tryPosition();
       }
     } else {
       thumb.src = ''; thumb.classList.remove('visible'); zone.classList.remove('has-image');
@@ -380,7 +390,7 @@ function initDesk() {
     if (posImg && posImg.complete && posImg.naturalWidth > 0) {
       // Calculate actual pixel offset for draggable positioning
       const container = posImg.parentElement;
-      if (container) {
+      if (container && container.offsetWidth > 0 && container.offsetHeight > 0) {
         const imgNaturalRatio = posImg.naturalWidth / posImg.naturalHeight;
         const containerRatio = container.offsetWidth / container.offsetHeight;
         
@@ -408,6 +418,7 @@ function initDesk() {
         posImg.style.top = offsetY + 'px';
         posImg.style.objectFit = 'none';
         posImg.style.objectPosition = 'initial';
+        posImg.style.display = 'block';
       }
     }
     
