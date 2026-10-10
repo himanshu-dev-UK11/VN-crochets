@@ -1,7 +1,7 @@
 import {PRODUCTS,RIBBON_COLORS,RIBBON_NAMES,SHIPPING_THRESHOLD,initCatalog} from './data.js';
 import {loadState,saveState,itemCount,subtotal,total} from './store.js';
 const state=loadState();const $=selector=>document.querySelector(selector);const money=value=>'₹'+value.toLocaleString('en-IN');
-const art=(product, className='', label=false)=>product.image?`<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}<img src="${product.image}" alt="${product.n}"></div>`:`<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
+const art=(product, className='', label=false)=>product.image?`<div class="art ${className}" style="background:${product.bg};${product.imageX !== undefined && product.imageY !== undefined ? `background-position:${product.imageX}% ${product.imageY}%` : ''}">${label?`<span class="lv">${product.c}</span>`:''}<img src="${product.image}" alt="${product.n}" style="${product.imageX !== undefined && product.imageY !== undefined ? `object-position:${product.imageX}% ${product.imageY}%` : ''}"></div>`:`<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
 const toast=(message)=>{const element=$('#toast');element.textContent=message;element.classList.add('on');clearTimeout(toast.timer);toast.timer=setTimeout(()=>element.classList.remove('on'),2200)};
 
 // ── Keyboard focus trap ────────────────────────────────────────────────────

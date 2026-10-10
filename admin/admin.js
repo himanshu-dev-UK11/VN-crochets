@@ -126,6 +126,19 @@ function deskHTML() {
           <div class="image-upload-label">
             <span>Product image</span>
             <span class="hint">JPG, PNG, or WebP · up to 4 MB</span>
+          </div>
+          <div class="form-grid two">
+            <label>Image horizontal position (%)
+              <input id="imageX" type="number" min="0" max="100" value="50" placeholder="50">
+              <span class="hint">0=left, 50=center, 100=right</span>
+            </label>
+            <label>Image vertical position (%)
+              <input id="imageY" type="number" min="0" max="100" value="50" placeholder="50">
+              <span class="hint">0=top, 50=middle, 100=bottom</span>
+            </label>
+          </div>
+          <div class="image-upload-container">
+          <div class="image-upload-container">
             <div class="image-drop-zone" id="imageDropZone" role="button" tabindex="0" aria-label="Choose product image">
               <img id="imageThumb" class="image-thumb" alt="Selected product image">
               <div class="image-drop-inner" id="imageDropInner">
@@ -179,7 +192,7 @@ function initDesk() {
   const API = '/api';
   const $   = (sel) => document.querySelector(sel);
   const form = $('#productForm');
-  const fields = ['productId','name','category','price','size','stock','level','background','emoji','description','materials','care','featured','active'];
+  const fields = ['productId','name','category','price','size','stock','level','background','emoji','imageX','imageY','description','materials','care','featured','active'];
   let imageData = '';
   let imageFile = null;
   let catalog   = [];
@@ -225,7 +238,10 @@ function initDesk() {
       p: Number($('#price').value), s: $('#size').value.trim(),
       stock: Number($('#stock').value), lv: Number($('#level').value) || 1,
       bg: $('#background').value, e: $('#emoji').value.trim(),
-      image: imageData, d: $('#description').value.trim(),
+      image: imageData,
+      imageX: Number($('#imageX').value) || 50,
+      imageY: Number($('#imageY').value) || 50,
+      d: $('#description').value.trim(),
       m: materialsFromText($('#materials').value),
       care: $('#care').value.trim(),
       featured: $('#featured').checked, active: $('#active').checked
@@ -240,7 +256,7 @@ function initDesk() {
     $('#catalogList').innerHTML = visible.length
       ? visible.map(p => `
         <article class="catalog-row" data-product="${p.id}">
-          <div class="art" style="background:${p.bg};${p.image ? `background-image:url('${p.image}')` : ''}">${p.image ? '' : p.e}</div>
+          <div class="art" style="background:${p.bg};${p.image ? `background-image:url('${p.image}');background-position:${p.imageX || 50}% ${p.imageY || 50}%` : ''}">${p.image ? '' : p.e}</div>
           <div><h3>${p.n}</h3><p>${p.c} · ₹${p.p.toLocaleString('en-IN')} · ${p.stock} in stock${p.active ? '' : ' · Draft'}</p></div>
           <div class="row-actions">
             <button data-edit="${p.id}" type="button">Edit</button>
@@ -256,7 +272,7 @@ function initDesk() {
     $('#inspectorTitle').textContent = title;
     $('#preview').innerHTML = `
       <div class="inspector-card">
-        <div class="preview-art" style="background-color:${p.bg};${p.image ? `background-image:url('${p.image}')` : ''}">${p.image ? '' : p.e || '🧶'}</div>
+        <div class="preview-art" style="background-color:${p.bg};${p.image ? `background-image:url('${p.image}');background-position:${p.imageX || 50}% ${p.imageY || 50}%` : ''}">${p.image ? '' : p.e || '🧶'}</div>
         <div class="inspector-copy">
           <div class="preview-meta"><span>${p.c || 'Collection'} · ${p.s || 'Size'}</span><strong>₹${(p.p || 0).toLocaleString('en-IN')}</strong></div>
           <h3>${p.n || 'Your creation name'}</h3><p>${p.d || 'No description yet.'}</p>
@@ -391,7 +407,10 @@ function initDesk() {
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-if (getToken()) {
+// Skip login for localhost development
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  mountDesk();  // localhost: skip auth and go straight to desk
+} else if (getToken()) {
   mountDesk();  // already logged in — go straight to desk
 } else {
   showLogin();  // show login form

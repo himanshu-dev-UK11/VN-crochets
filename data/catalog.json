@@ -22,7 +22,9 @@
     "care": "Remove the bandana before washing. Hand wash cold, air dry.",
     "stock": 3,
     "featured": true,
-    "active": true
+    "active": true,
+    "imageX": 50,
+    "imageY": 50
   },
   {
     "id": 8,
@@ -47,7 +49,9 @@
     "care": "Hand wash cold. The tail keeps its fluff best when air-dried away from heat.",
     "stock": 2,
     "featured": true,
-    "active": true
+    "active": true,
+    "imageX": 50,
+    "imageY": 50
   },
   {
     "id": 9,
@@ -64,6 +68,8 @@
     "m": [],
     "care": "",
     "featured": true,
-    "active": true
+    "active": true,
+    "imageX": 50,
+    "imageY": 45
   }
 ]

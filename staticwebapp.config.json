@@ -1,12 +1,13 @@
 {
   "routes": [
     {
-      "route": "/checkout",
-      "rewrite": "/pages/checkout.html"
+      "route": "/admin/*",
+      "redirect": "http://localhost:3000/admin/",
+      "statusCode": 302
     },
     {
-      "route": "/admin",
-      "rewrite": "/admin/index.html"
+      "route": "/checkout",
+      "rewrite": "/pages/checkout.html"
     },
     {
       "route": "/*.html",
