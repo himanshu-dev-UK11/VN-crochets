@@ -150,6 +150,13 @@ function deskHTML() {
                 <button type="button" data-aspect="1" class="preset-btn">Square (1:1)</button>
                 <button type="button" data-aspect="0.85" class="preset-btn">Tall (0.85)</button>
               </div>
+              <div class="zoom-control">
+                <label class="zoom-label">
+                  <span>Zoom</span>
+                  <span class="zoom-value"><b id="zoomValue">100</b>%</span>
+                </label>
+                <input type="range" id="zoomSlider" min="100" max="250" step="5" value="100" class="zoom-slider">
+              </div>
               <div class="position-preview-container">
                 <div class="position-preview" id="positionPreview" data-aspect="0.75">
                   <div class="position-crosshair"></div>
@@ -167,6 +174,7 @@ function deskHTML() {
           <input id="imageX" type="hidden" value="50">
           <input id="imageY" type="hidden" value="50">
           <input id="imageAspect" type="hidden" value="0.75">
+          <input id="imageZoom" type="hidden" value="100">
           <input id="image" type="file" accept="image/png,image/jpeg,image/webp" aria-hidden="true" tabindex="-1" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none">
           <label>Short description<textarea id="description" rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
           <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
@@ -207,7 +215,7 @@ function initDesk() {
   const API = '/api';
   const $   = (sel) => document.querySelector(sel);
   const form = $('#productForm');
-  const fields = ['productId','name','category','price','size','stock','level','background','emoji','imageX','imageY','description','materials','care','featured','active'];
+  const fields = ['productId','name','category','price','size','stock','level','background','emoji','imageX','imageY','imageZoom','description','materials','care','featured','active'];
   let imageData = '';
   let imageFile = null;
   let catalog   = [];
@@ -256,6 +264,7 @@ function initDesk() {
       image: imageData,
       imageX: Number($('#imageX').value) || 50,
       imageY: Number($('#imageY').value) || 50,
+      imageZoom: Number($('#imageZoom').value) || 100,
       d: $('#description').value.trim(),
       m: materialsFromText($('#materials').value),
       care: $('#care').value.trim(),
@@ -271,7 +280,7 @@ function initDesk() {
     $('#catalogList').innerHTML = visible.length
       ? visible.map(p => `
         <article class="catalog-row" data-product="${p.id}">
-          <div class="art" style="background:${p.bg};${p.image ? `background-image:url('${p.image}');background-position:${p.imageX || 50}% ${p.imageY || 50}%` : ''}">${p.image ? '' : p.e}</div>
+          <div class="art" style="background:${p.bg};${p.image ? `background-image:url('${p.image}');background-position:${p.imageX || 50}% ${p.imageY || 50}%;background-size:${p.imageZoom || 100}%` : ''}">${p.image ? '' : p.e}</div>
           <div><h3>${p.n}</h3><p>${p.c} · ₹${p.p.toLocaleString('en-IN')} · ${p.stock} in stock${p.active ? '' : ' · Draft'}</p></div>
           <div class="row-actions">
             <button data-edit="${p.id}" type="button">Edit</button>
@@ -287,7 +296,7 @@ function initDesk() {
     $('#inspectorTitle').textContent = title;
     $('#preview').innerHTML = `
       <div class="inspector-card">
-        <div class="preview-art" style="background-color:${p.bg};${p.image ? `background-image:url('${p.image}');background-position:${p.imageX || 50}% ${p.imageY || 50}%` : ''}">${p.image ? '' : p.e || '🧶'}</div>
+        <div class="preview-art" style="background-color:${p.bg};${p.image ? `background-image:url('${p.image}');background-position:${p.imageX || 50}% ${p.imageY || 50}%;background-size:${p.imageZoom || 100}%` : ''}">${p.image ? '' : p.e || '🧶'}</div>
         <div class="inspector-copy">
           <div class="preview-meta"><span>${p.c || 'Collection'} · ${p.s || 'Size'}</span><strong>₹${(p.p || 0).toLocaleString('en-IN')}</strong></div>
           <h3>${p.n || 'Your creation name'}</h3><p>${p.d || 'No description yet.'}</p>
@@ -316,6 +325,7 @@ function initDesk() {
       else if (f==='emoji')       el.value   = p.e;
       else if (f==='imageX')      el.value   = p.imageX ?? 50;
       else if (f==='imageY')      el.value   = p.imageY ?? 50;
+      else if (f==='imageZoom')    el.value   = p.imageZoom ?? 100;
       else if (f==='description') el.value   = p.d;
       else if (f==='materials')   el.value   = materialsToText(p.m);
       else if (f==='care')        el.value   = p.care ?? '';
@@ -359,8 +369,12 @@ function initDesk() {
         posEditor.hidden = false;
         // Show image as background so drag maps directly to background-position
         posPreview.style.backgroundImage = `url('${imageData}')`;
-        posPreview.style.backgroundSize = '150%';
         posPreview.style.backgroundRepeat = 'no-repeat';
+        const zoomSlider = document.querySelector('#zoomSlider');
+        const zoomVal = Number(document.querySelector('#imageZoom').value) || 100;
+        if (zoomSlider) { zoomSlider.value = zoomVal; }
+        const zoomDisplay = document.querySelector('#zoomValue');
+        if (zoomDisplay) zoomDisplay.textContent = zoomVal;
         updatePositionPreview();
       }
     } else {
@@ -379,9 +393,11 @@ function initDesk() {
     const posPreview = $('#positionPreview');
     const x = Number($('#imageX').value) || 50;
     const y = Number($('#imageY').value) || 50;
+    const zoom = Number($('#imageZoom').value) || 100;
 
     if (posPreview) {
       posPreview.style.backgroundPosition = `${x}% ${y}%`;
+      posPreview.style.backgroundSize = zoom + '%';
     }
     const cx = $('#coordX'), cy = $('#coordY');
     if (cx) cx.textContent = Math.round(x);
@@ -463,9 +479,22 @@ function initDesk() {
         e.preventDefault();
         $('#imageX').value = 50;
         $('#imageY').value = 50;
+        $('#imageZoom').value = 100;
+        const zs = $('#zoomSlider'); if (zs) zs.value = 100;
+        const zv = $('#zoomValue'); if (zv) zv.textContent = 100;
         updatePositionPreview();
       });
     }
+
+    // Zoom slider
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'zoomSlider') {
+        const zoom = Number(e.target.value);
+        $('#imageZoom').value = zoom;
+        const zv = $('#zoomValue'); if (zv) zv.textContent = zoom;
+        updatePositionPreview();
+      }
+    });
   }
 
   function openEditor()  { $('#editorPanel').classList.add('open'); $('#editorPanel').setAttribute('aria-hidden','false'); document.body.classList.add('editor-open'); $('#name').focus(); }
