@@ -28,18 +28,6 @@
       }
     },
     {
-      "route": "/admin/admin.js",
-      "headers": {
-        "Cache-Control": "no-cache"
-      }
-    },
-    {
-      "route": "/admin/admin.css",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
       "route": "/og-image.*",
       "headers": {
         "Cache-Control": "public, max-age=604800"
