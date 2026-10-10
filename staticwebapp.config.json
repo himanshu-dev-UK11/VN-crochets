@@ -18,19 +18,25 @@
     {
       "route": "/css/*",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "Cache-Control": "no-cache"
       }
     },
     {
       "route": "/js/*",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "Cache-Control": "no-cache"
       }
     },
     {
       "route": "/og-image.*",
       "headers": {
         "Cache-Control": "public, max-age=604800"
+      }
+    },
+    {
+      "route": "/data/*",
+      "headers": {
+        "Cache-Control": "no-cache"
       }
     }
   ],
