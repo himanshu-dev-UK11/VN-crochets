@@ -1,11 +1,11 @@
-// Catalog is loaded from the backend server at runtime.
+// Catalog is loaded from data/catalog.json at runtime.
 // Call initCatalog() once before using PRODUCTS; it populates the array in-place.
 
 export const PRODUCTS = [];
 
 export async function initCatalog() {
   try {
-    const res = await fetch('/api/catalog');
+    const res = await fetch('/data/catalog.json');
     if (!res.ok) throw new Error(`Server ${res.status}`);
     const all = await res.json();
     // Only show published items to shoppers
@@ -13,7 +13,7 @@ export async function initCatalog() {
     PRODUCTS.length = 0;
     active.forEach(p => PRODUCTS.push(p));
   } catch (err) {
-    console.warn('Could not load catalog from server, using built-in defaults.', err);
+    console.warn('Could not load catalog, using built-in defaults.', err);
     // Fallback so the shop is never completely empty
     const defaults = [
       {id:1,n:'Moss the Mushroom',e:'🍄',c:'Forest',p:599,lv:1,bg:'#ffc9c9',s:'12 cm',m:[['Cotton yarn','2 skeins'],['Poly fill','30 g']],d:'A soft red cap and sleepy stitched eyes for a calm little desk corner.',care:'Spot-clean with a damp cloth.',stock:5,featured:true,active:true},
