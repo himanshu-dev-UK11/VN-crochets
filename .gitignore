@@ -1,6 +1,5 @@
 node_modules/
 uploads/
-data/
 .env
 .env.*
 !.env.example
