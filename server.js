@@ -93,6 +93,20 @@ if (!fs.existsSync(CATALOG_FILE)) {
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
+
+// POST /api/login — simple local auth (no real JWT needed for local dev)
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  // Simple check - for local dev only
+  if (username === 'varsha75' && password === 'varsha2812') {
+    // Return a fake token that admin.js will accept
+    const fakeToken = Buffer.from(`${username}:${password}`).toString('base64');
+    res.json({ token: fakeToken });
+  } else {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+});
+
 // GET /api/catalog  — returns the full catalog (active + drafts for admin)
 app.get('/api/catalog', (_req, res) => {
   res.json(readCatalog());
@@ -131,3 +145,4 @@ app.listen(PORT, () => {
   console.log(`  Admin desk:                        http://localhost:${PORT}/admin/`);
   console.log(`  API:                               http://localhost:${PORT}/api/catalog\n`);
 });
+
