@@ -143,17 +143,32 @@ function deskHTML() {
             </div>
             <div class="image-position-editor" id="imagePositionEditor" hidden>
               <div class="position-label">
-                <span>Adjust image position</span>
-                <span class="hint">Drag the image to reposition</span>
+                <span>Position & aspect ratio</span>
+                <span class="hint">Drag image or use presets</span>
               </div>
-              <div class="position-preview" id="positionPreview">
-                <img id="positionImg" draggable="false" alt="Position preview">
+              <div class="aspect-presets">
+                <button type="button" data-aspect="0.75" class="preset-btn active">Portrait (3:4)</button>
+                <button type="button" data-aspect="1" class="preset-btn">Square (1:1)</button>
+                <button type="button" data-aspect="0.85" class="preset-btn">Tall (0.85)</button>
               </div>
-              <button type="button" class="text-button" id="resetPosition">Reset to center</button>
+              <div class="position-preview-container">
+                <div class="position-preview" id="positionPreview" data-aspect="0.75">
+                  <img id="positionImg" draggable="false" alt="Position preview">
+                  <div class="position-crosshair"></div>
+                </div>
+                <div class="position-coords">
+                  <span>X: <b id="coordX">50</b>%</span>
+                  <span>Y: <b id="coordY">50</b>%</span>
+                </div>
+              </div>
+              <div class="position-actions">
+                <button type="button" class="text-button" id="resetPosition">Reset to center</button>
+              </div>
             </div>
           </div>
           <input id="imageX" type="hidden" value="50">
           <input id="imageY" type="hidden" value="50">
+          <input id="imageAspect" type="hidden" value="0.75">
           <input id="image" type="file" accept="image/png,image/jpeg,image/webp" aria-hidden="true" tabindex="-1" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none">
           <label>Short description<textarea id="description" rows="3" maxlength="180" placeholder="A soft little companion for a calm desk corner."></textarea></label>
           <label>Materials <span class="hint">one per line: material | amount</span><textarea id="materials" rows="3" placeholder="Cotton yarn | 2 skeins&#10;Poly fill | 30 g"></textarea></label>
@@ -355,9 +370,14 @@ function initDesk() {
     const posImg = $('#positionImg');
     const x = Number($('#imageX').value) || 50;
     const y = Number($('#imageY').value) || 50;
+    const coordX = $('#coordX');
+    const coordY = $('#coordY');
+    
     if (posImg) {
       posImg.style.objectPosition = `${x}% ${y}%`;
     }
+    if (coordX) coordX.textContent = Math.round(x);
+    if (coordY) coordY.textContent = Math.round(y);
   }
   
   function initImagePositionDrag() {
@@ -366,40 +386,96 @@ function initDesk() {
     if (!preview || !img) return;
     
     let isDragging = false;
+    let startX = 0, startY = 0;
+    let initialPosX = 50, initialPosY = 50;
     
-    const updatePosition = (e) => {
+    const updatePosition = (clientX, clientY) => {
       const rect = preview.getBoundingClientRect();
-      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
-      $('#imageX').value = Math.round(x);
-      $('#imageY').value = Math.round(y);
+      const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+      
+      $('#imageX').value = x.toFixed(1);
+      $('#imageY').value = y.toFixed(1);
       updatePositionPreview();
     };
     
-    preview.addEventListener('mousedown', (e) => {
+    const startDrag = (clientX, clientY) => {
       isDragging = true;
-      preview.style.cursor = 'grabbing';
-      updatePosition(e);
+      preview.classList.add('dragging');
+      startX = clientX;
+      startY = clientY;
+      initialPosX = Number($('#imageX').value) || 50;
+      initialPosY = Number($('#imageY').value) || 50;
+      updatePosition(clientX, clientY);
+    };
+    
+    const onMove = (clientX, clientY) => {
+      if (!isDragging) return;
+      updatePosition(clientX, clientY);
+    };
+    
+    const endDrag = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      preview.classList.remove('dragging');
+    };
+    
+    // Mouse events
+    preview.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startDrag(e.clientX, e.clientY);
     });
     
     document.addEventListener('mousemove', (e) => {
       if (isDragging) {
         e.preventDefault();
-        updatePosition(e);
+        onMove(e.clientX, e.clientY);
       }
     });
     
-    document.addEventListener('mouseup', () => {
+    document.addEventListener('mouseup', endDrag);
+    
+    // Touch events for mobile
+    preview.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      startDrag(touch.clientX, touch.clientY);
+    });
+    
+    preview.addEventListener('touchmove', (e) => {
       if (isDragging) {
-        isDragging = false;
-        preview.style.cursor = 'grab';
+        e.preventDefault();
+        const touch = e.touches[0];
+        onMove(touch.clientX, touch.clientY);
       }
+    });
+    
+    preview.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      endDrag();
+    });
+    
+    // Aspect ratio presets
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const aspect = btn.dataset.aspect;
+        $('#imageAspect').value = aspect;
+        preview.style.aspectRatio = aspect;
+        
+        // Update active state
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        updatePositionPreview();
+      });
     });
     
     // Reset button
     const resetBtn = $('#resetPosition');
     if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
+      resetBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         $('#imageX').value = 50;
         $('#imageY').value = 50;
         updatePositionPreview();
