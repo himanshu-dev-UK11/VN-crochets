@@ -25,7 +25,7 @@ const app  = express();
 const PORT = 3000;
 const ROOT = __dirname;
 const CATALOG_FILE = path.join(ROOT, 'data', 'catalog.json');
-const UPLOADS_DIR  = path.join(ROOT, 'uploads');
+const UPLOADS_DIR  = path.join(ROOT, 'images');
 
 // ── Ensure storage directories exist ─────────────────────────────────────────
 fs.mkdirSync(path.join(ROOT, 'data'),    { recursive: true });
@@ -55,7 +55,7 @@ app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
 // Serve uploaded images
-app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/images', express.static(UPLOADS_DIR));
 
 // Serve the entire project as static files (index.html, admin/, pages/, css/, js/)
 app.use(express.static(ROOT, { index: 'index.html' }));
@@ -145,4 +145,5 @@ app.listen(PORT, () => {
   console.log(`  Admin desk:                        http://localhost:${PORT}/admin/`);
   console.log(`  API:                               http://localhost:${PORT}/api/catalog\n`);
 });
+
 
