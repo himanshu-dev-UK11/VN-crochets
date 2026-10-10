@@ -1,10 +1,13 @@
 import {PRODUCTS,RIBBON_COLORS,RIBBON_NAMES,SHIPPING_THRESHOLD,initCatalog} from './data.v2.js';
 import {loadState,saveState,itemCount,subtotal,total} from './store.v2.js';
 const state=loadState();const $=selector=>document.querySelector(selector);const money=value=>'₹'+value.toLocaleString('en-IN');
-const art=(product, className='', label=false)=>{
+const art=(product, className='', label=false, contain=false)=>{
   if(product.image){
     const x=product.imageX??50, y=product.imageY??50, z=product.imageZoom||100;
-    return `<div class="art ${className}" style="background-color:${product.bg};background-image:url('${product.image}');background-position:${x}% ${y}%;background-size:${z}%;background-repeat:no-repeat;">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
+    // contain=true for modal: show full image regardless of position/zoom settings
+    const size = contain ? 'contain' : z+'%';
+    const pos  = contain ? 'center' : x+'% '+y+'%';
+    return `<div class="art ${className}" style="background-color:${product.bg};background-image:url('${product.image}');background-position:${pos};background-size:${size};background-repeat:no-repeat;">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
   }
   return `<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
 };
@@ -92,7 +95,7 @@ function renderBag(){
   const emptyState=`<div class="bag-empty"><p style="color:var(--soft)">Your bag is empty. Browse the collection and find a piece you love.</p><button class="btn" id="bagGoShop">Browse the collection</button></div>`;
   const itemRows=state.cart.length?state.cart.map((item,index)=>{
     const product=PRODUCTS.find(entry=>entry.id===item.id);
-    return `<div class="row"><div>${art(product)}</div><div><b>${product.n}</b><br><small>${item.c} ribbon · ${money(product.p)}</small></div><div class="bag-item-right"><div class="qty"><button data-index="${index}" data-delta="-1" aria-label="Remove one ${product.n}">−</button><b>${item.q}</b><button data-index="${index}" data-delta="1" aria-label="Add one more ${product.n}">+</button></div><b class="line-total">${money(product.p*item.q)}</b></div></div>`;
+    return `<div class="row"><div>${art(product,"",false,true)}</div><div><b>${product.n}</b><br><small>${item.c} ribbon · ${money(product.p)}</small></div><div class="bag-item-right"><div class="qty"><button data-index="${index}" data-delta="-1" aria-label="Remove one ${product.n}">−</button><b>${item.q}</b><button data-index="${index}" data-delta="1" aria-label="Add one more ${product.n}">+</button></div><b class="line-total">${money(product.p*item.q)}</b></div></div>`;
   }).join(''):emptyState;
 
   $('#bagp').innerHTML=
@@ -118,7 +121,7 @@ function openProduct(id){
     const careRow=product.care?`<div class="mat care-row"><span>🧺 Care</span><span>${product.care}</span></div>`:'';
     $('#mcard').innerHTML=
       `<button class="x" aria-label="Close details">✕</button>`+
-      `<div class="rec">${art(product)}<div>`+
+      `<div class="rec">${art(product,"",false,true)}<div>`+
       `<span class="tag">Crafting recipe · LV ${product.lv}</span>`+
       `<h2 style="font-size:26px">${product.n}</h2>`+
       `<p style="color:var(--soft);margin:6px 0">${product.d}</p>`+
