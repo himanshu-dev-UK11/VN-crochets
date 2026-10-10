@@ -128,7 +128,6 @@ function deskHTML() {
             <span class="hint">JPG, PNG, or WebP · up to 4 MB</span>
           </div>
           <div class="image-upload-container">
-          <div class="image-upload-container">
             <div class="image-drop-zone" id="imageDropZone" role="button" tabindex="0" aria-label="Choose product image">
               <img id="imageThumb" class="image-thumb" alt="Selected product image">
               <div class="image-drop-inner" id="imageDropInner">
