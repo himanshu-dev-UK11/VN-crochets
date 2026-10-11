@@ -4,9 +4,11 @@ const state=loadState();const $=selector=>document.querySelector(selector);const
 const art=(product, className='', label=false, contain=false)=>{
   if(product.image){
     const x=product.imageX??50, y=product.imageY??50, z=product.imageZoom||100;
-    // contain=true for modal: show full image regardless of position/zoom settings
-    const size = contain ? 'contain' : z+'%';
-    const pos  = contain ? 'center' : x+'% '+y+'%';
+    // contain=true (modal/bag): always show full image
+    // z===100 (default, no admin zoom set): contain so full product visible on card
+    // z>100 (admin set a zoom): use zoom% + position so crop applies on card
+    const size = (contain || z===100) ? 'contain' : z+'%';
+    const pos  = (contain || z===100) ? 'center'  : x+'% '+y+'%';
     return `<div class="art ${className}" style="background-color:${product.bg};background-image:url('${product.image}');background-position:${pos};background-size:${size};background-repeat:no-repeat;">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
   }
   return `<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
