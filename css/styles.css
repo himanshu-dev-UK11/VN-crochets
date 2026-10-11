@@ -136,7 +136,7 @@ body{background-color:var(--sky2);background-image:radial-gradient(#ffffff55 1px
   .modal .rec{
     display:block;
   }
-  .modal .rec>.art{width:100%;aspect-ratio:4/5;min-height:0;border-radius:14px;font-size:76px!important}
+  .modal .rec>.art{width:100%;min-height:0;border-radius:14px;font-size:76px!important}
   .modal .rec>div+div{padding:12px 14px 8px}
   .modal .rec h2{font-size:23px!important;padding-right:32px}
   .modal .rec p{font-size:14px;line-height:1.25;margin:4px 0!important}
@@ -498,3 +498,7 @@ textarea[aria-invalid="true"] {
 .ribbon-control-label{font-size:13px;font-weight:700;color:var(--ink)}
 .ribbon-checks{display:flex;gap:8px;flex-wrap:wrap}
 .ribbon-check-item{display:flex;align-items:center;gap:5px;font-size:12px;padding:6px 10px;border:2px solid var(--line);border-radius:8px;background:var(--paper)}
+
+/* ── Modal product image ── */
+.modal-img-wrap{width:100%;border-radius:14px 14px 0 0;overflow:hidden;background:var(--paper);line-height:0}
+.modal-img{width:100%;height:auto;display:block;object-fit:contain;max-height:70vh}

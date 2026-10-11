@@ -123,7 +123,11 @@ function openProduct(id){
     const careRow=product.care?`<div class="mat care-row"><span>🧺 Care</span><span>${product.care}</span></div>`:'';
     $('#mcard').innerHTML=
       `<button class="x" aria-label="Close details">✕</button>`+
-      `<div class="rec">${art(product,"",false,true)}<div>`+
+      `<div class="rec">`+
+      (product.image
+        ? `<div class="modal-img-wrap"><img class="modal-img" src="${product.image}" alt="${product.n}"></div>`
+        : art(product,"",false,true))+
+      `<div>`+
       `<span class="tag">Crafting recipe · LV ${product.lv}</span>`+
       `<h2 style="font-size:26px">${product.n}</h2>`+
       `<p style="color:var(--soft);margin:6px 0">${product.d}</p>`+
