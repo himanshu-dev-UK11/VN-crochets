@@ -123,11 +123,11 @@ function openProduct(id){
     const careRow=product.care?`<div class="mat care-row"><span>🧺 Care</span><span>${product.care}</span></div>`:'';
     $('#mcard').innerHTML=
       `<button class="x" aria-label="Close details">✕</button>`+
-      `<div class="rec">`+
+      `<div class="modal-body">`+
       (product.image
         ? `<div class="modal-img-wrap"><img class="modal-img" src="${product.image}" alt="${product.n}"></div>`
-        : art(product,"",false,true))+
-      `<div>`+
+        : art(product,"modal-emoji","",false))+
+      `<div class="modal-content">`+
       `<span class="tag">Crafting recipe · LV ${product.lv}</span>`+
       `<h2 style="font-size:26px">${product.n}</h2>`+
       `<p style="color:var(--soft);margin:6px 0">${product.d}</p>`+
@@ -139,7 +139,7 @@ function openProduct(id){
       
       `<div style="display:flex;align-items:center;gap:12px;margin-top:10px"><div class="qty"><button data-quantity="-1" aria-label="Decrease quantity">−</button><b>${quantity}</b><button data-quantity="1" aria-label="Increase quantity">+</button></div><b class="f" style="font-size:22px">${money(product.p*quantity)}</b></div>`+
       `<p style="margin:10px 0 0"><button class="btn" data-add>Add to backpack</button></p>`+
-      `</div></div>`;
+      `</div></div></div>`;
   };
   draw();
   $('#modal').classList.add('on');
