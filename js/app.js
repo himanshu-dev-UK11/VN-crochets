@@ -117,8 +117,9 @@ function openProduct(id){
   const draw=()=>{
     const careRow=product.care?`<div class="pv-mat"><span>🧺 Care</span><span>${product.care}</span></div>`:'';
     const sizeRow=product.s?`<div class="pv-field"><span class="pv-label">Size</span><div class="pv-size-box">${product.s}</div></div>`:'';
-    const matsHTML=product.m.map(material=>`<div class="pv-mat"><span>${material[0]}</span><span>${material[1]}</span></div>`).join('');
+    const matsHTML=product.m.length?product.m.map(material=>`<div class="pv-mat"><span>${material[0]}</span><span>${material[1]}</span></div>`).join(''):'';
     const descHTML=product.d?`<p class="pv-desc">${product.d}</p>`:'';
+    const swatches=RIBBON_COLORS.map((value,index)=>`<button style="background:${value}" data-color="${index}" aria-pressed="${index===color}" aria-label="${RIBBON_NAMES[index]} ribbon" title="${RIBBON_NAMES[index]}"><span class="ribbon-check" aria-hidden="true">${index===color?'✓':''}</span></button>`).join('');
     $('#mcard').innerHTML=
       `<button class="x pv-close" aria-label="Close details">✕</button>`+
       `<div class="pv-scroll">`+
@@ -130,8 +131,10 @@ function openProduct(id){
           matsHTML+
           sizeRow+
           careRow+
-          `<div class="pv-field"><span class="pv-label">Ribbon: <strong>${RIBBON_NAMES[color]}</strong></span></div>`+
-          `<div class="sw pv-sw" role="group" aria-label="Choose ribbon colour">${RIBBON_COLORS.map((value,index)=>`<button style="background:${value}" data-color="${index}" aria-pressed="${index===color}" aria-label="${RIBBON_NAMES[index]} ribbon" title="${RIBBON_NAMES[index]}"><span class="ribbon-check" aria-hidden="true">${index===color?'✓':''}</span></button>`).join('')}</div>`+
+          `<div class="pv-ribbon-section">`+
+            `<span class="pv-ribbon-label">Ribbon: <strong>${RIBBON_NAMES[color]}</strong></span>`+
+            `<div class="sw pv-sw" role="group" aria-label="Choose ribbon colour">${swatches}</div>`+
+          `</div>`+
         `</div>`+
       `</div>`+
       `<div class="pv-footer">`+
