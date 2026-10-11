@@ -271,6 +271,34 @@ $('#req').addEventListener('submit',event=>{
   event.target.reset();
 });
 
+
+// ── Pull-to-refresh: reload page when user pulls down on mobile ────────────
+(function initPullToRefresh() {
+  let startY = 0;
+  let pulling = false;
+  const THRESHOLD = 90; // px to pull before refresh triggers
+
+  document.addEventListener('touchstart', (e) => {
+    // Only trigger when scrolled to top
+    if (window.scrollY === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > THRESHOLD && window.scrollY === 0) {
+      pulling = false;
+      // Force full reload bypassing cache
+      window.location.reload(true);
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => { pulling = false; }, { passive: true });
+})();
+
 // Boot: fetch live catalog from server, then render everything
 initCatalog().then(() => {
   renderGrid();
