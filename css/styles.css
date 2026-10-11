@@ -507,3 +507,276 @@ textarea[aria-invalid="true"] {
 .modal-body{display:flex;flex-direction:column;min-height:0}
 .modal-content{padding:14px;display:flex;flex-direction:column;gap:0;min-height:0}
 .modal .x{position:absolute;top:10px;right:10px;z-index:10}
+
+
+/* ══════════════════════════════════════════════════════
+   PRODUCT QUICK-VIEW MODAL  (polished v2)
+══════════════════════════════════════════════════════ */
+
+/* Backdrop */
+.modal{
+  position:fixed;inset:0;z-index:40;
+  display:none;
+  place-items:center;
+  padding:clamp(12px,3vw,24px);
+  background:#2a1f4a70;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  overflow:hidden;
+}
+.modal.on{display:grid;animation:backdropIn .2s ease}
+@keyframes backdropIn{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.modal{animation:none}}
+
+/* Card shell */
+.modal .card{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  width:min(520px,100%);
+  max-height:min(92vh,820px);
+  background:var(--paper);
+  border:2px solid var(--line);
+  border-radius:28px;
+  box-shadow:0 8px 40px #2a1f4a28,0 2px 8px #2a1f4a12;
+  overflow:hidden;
+  animation:pvPop .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pvPop{from{transform:scale(.93) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.modal .card{animation:none}}
+
+/* Mobile: bottom-sheet feel */
+@media(max-width:600px){
+  .modal{padding:0;place-items:end center;}
+  .modal .card{
+    width:min(100vw,100%);
+    max-height:93svh;
+    border-radius:24px 24px 0 0;
+    border-bottom:none;
+    animation:pvSlide .25s cubic-bezier(.34,1.2,.64,1);
+  }
+  @keyframes pvSlide{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+}
+
+/* Close button — always in top-right corner, above scroll */
+.pv-close{
+  position:absolute;top:12px;right:12px;z-index:10;
+  width:40px;height:40px;
+  border-radius:50%;border:0;
+  background:var(--pink);color:#fff;
+  font-size:18px;font-weight:800;line-height:1;
+  display:grid;place-items:center;
+  box-shadow:0 3px 0 #d96a8f;
+  transition:transform .12s,box-shadow .12s;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.pv-close:hover{transform:scale(1.08);box-shadow:0 4px 0 #c95a7f}
+.pv-close:active{transform:scale(.95) translateY(2px);box-shadow:0 1px 0 #c95a7f}
+
+/* Scrollable body */
+.pv-scroll{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:52px 20px 16px;
+  scrollbar-width:thin;
+  scrollbar-color:var(--line) transparent;
+}
+@media(max-width:600px){.pv-scroll{padding:48px 16px 12px}}
+
+/* Product image area */
+.pv-img-wrap{
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+}
+.pv-art{
+  width:clamp(140px,40%,200px);
+  aspect-ratio:1/1.1;
+  border-radius:18px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  font-size:72px;
+  flex-shrink:0;
+}
+@media(max-width:600px){
+  .pv-art{width:clamp(130px,50vw,180px)}
+}
+
+/* Body content */
+.pv-body{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* Badge */
+.pv-badge{
+  display:inline-flex;align-items:center;
+  background:#e6ebff;color:#4a5ab0;
+  border:1.5px solid #c0caf0;
+  border-radius:999px;
+  padding:3px 12px;
+  font-size:12px;font-weight:700;
+  align-self:flex-start;
+}
+
+/* Title */
+.pv-title{
+  font-family:'Fredoka','Trebuchet MS',sans-serif;
+  font-size:clamp(20px,4vw,26px);
+  font-weight:600;
+  color:var(--ink);
+  line-height:1.15;
+  margin:0;
+}
+
+/* Description */
+.pv-desc{
+  color:var(--soft);
+  font-size:14px;
+  line-height:1.5;
+  margin:0;
+}
+
+/* Materials / info rows */
+.pv-mat{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  background:var(--card);
+  border:2px solid var(--line);
+  border-radius:12px;
+  padding:6px 12px;
+  font-size:13px;
+}
+
+/* Field label */
+.pv-field{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.pv-label{
+  font-size:12px;
+  font-weight:700;
+  color:var(--soft);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.pv-label strong{
+  color:var(--ink);
+  font-size:13px;
+  text-transform:none;
+  letter-spacing:0;
+  font-weight:800;
+}
+
+/* Size box */
+.pv-size-box{
+  background:var(--card);
+  border:2px solid var(--line);
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--ink);
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* Swatches */
+.pv-sw{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:4px 0 0;
+}
+.pv-sw button{
+  width:clamp(34px,8vw,38px);
+  height:clamp(34px,8vw,38px);
+  border-radius:50%;
+  border:2.5px solid var(--line);
+  transition:border-color .15s,transform .15s,box-shadow .15s;
+  position:relative;
+}
+.pv-sw button[aria-pressed=true]{
+  border-color:var(--ink);
+  box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink);
+  transform:scale(1.1);
+}
+.pv-sw button:hover{border-color:var(--soft);transform:scale(1.05)}
+.pv-sw .ribbon-check{
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  font-size:14px;font-weight:900;
+  color:var(--ink);pointer-events:none;
+}
+
+/* Sticky footer: quantity + price + CTA */
+.pv-footer{
+  flex-shrink:0;
+  padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));
+  border-top:2px solid var(--line);
+  background:var(--paper);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+@media(max-width:600px){.pv-footer{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}}
+
+/* Quantity + price row */
+.pv-qty-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.pv-qty{
+  display:inline-flex;align-items:center;gap:8px;
+}
+.pv-qty button{
+  width:40px;height:40px;
+  border-radius:50%;
+  border:2px solid var(--line);
+  background:var(--card);
+  font-size:18px;font-weight:700;
+  display:grid;place-items:center;
+  transition:background .12s,transform .1s;
+}
+.pv-qty button:hover{background:var(--lav)}
+.pv-qty button:active{transform:scale(.9)}
+.pv-qty b{font-size:18px;min-width:24px;text-align:center;font-family:'Fredoka',sans-serif}
+
+.pv-price{
+  font-family:'Fredoka','Trebuchet MS',sans-serif;
+  font-size:clamp(22px,4vw,28px);
+  font-weight:600;
+  color:var(--ink);
+  white-space:nowrap;
+}
+
+/* CTA button */
+.pv-cta{
+  width:100%;
+  height:50px;
+  border-radius:999px;
+  font-size:17px;
+  font-family:'Fredoka',sans-serif;
+  font-weight:600;
+  background:var(--pink);
+  color:#4a2038;
+  border:0;
+  box-shadow:0 5px 0 #d9708f;
+  cursor:pointer;
+  transition:transform .12s,box-shadow .12s,background .12s;
+  display:grid;place-items:center;
+}
+.pv-cta:hover{background:#f891aa;transform:translateY(-2px);box-shadow:0 7px 0 #d9708f}
+.pv-cta:active{transform:translateY(3px);box-shadow:0 2px 0 #d9708f}
+.pv-cta:disabled{opacity:.5;pointer-events:none}
+
+/* Remove old rec layout inside modal */
+.modal .rec{display:contents}

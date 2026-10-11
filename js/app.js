@@ -115,21 +115,32 @@ function openProduct(id){
   let color=0;let quantity=1;
   // task #11 — richer ribbon selector, task #17 — care notes
   const draw=()=>{
-    const careRow=product.care?`<div class="mat care-row"><span>🧺 Care</span><span>${product.care}</span></div>`:'';
+    const careRow=product.care?`<div class="pv-mat"><span>🧺 Care</span><span>${product.care}</span></div>`:'';
+    const sizeRow=product.s?`<div class="pv-field"><span class="pv-label">Size</span><div class="pv-size-box">${product.s}</div></div>`:'';
+    const matsHTML=product.m.map(material=>`<div class="pv-mat"><span>${material[0]}</span><span>${material[1]}</span></div>`).join('');
+    const descHTML=product.d?`<p class="pv-desc">${product.d}</p>`:'';
     $('#mcard').innerHTML=
-      `<button class="x" aria-label="Close details">✕</button>`+
-      `<div class="rec">${art(product)}<div>`+
-      `<span class="tag">Crafting recipe · LV ${product.lv}</span>`+
-      `<h2 style="font-size:26px">${product.n}</h2>`+
-      `<p style="color:var(--soft);margin:6px 0">${product.d}</p>`+
-      product.m.map(material=>`<div class="mat"><span>${material[0]}</span><span>${material[1]}</span></div>`).join('')+
-      `<div class="mat"><span>Size</span><span>${product.s}</span></div>`+
-      careRow+
-      `<div class="ribbon-label">Ribbon: <b>${RIBBON_NAMES[color]}</b></div>`+
-      `<div class="sw" role="group" aria-label="Choose ribbon colour">${RIBBON_COLORS.map((value,index)=>`<button style="background:${value}" data-color="${index}" aria-pressed="${index===color}" aria-label="${RIBBON_NAMES[index]} ribbon" title="${RIBBON_NAMES[index]}"><span class="ribbon-check">${index===color?'✓':''}</span></button>`).join('')}</div>`+
-      `<div style="display:flex;align-items:center;gap:12px;margin-top:10px"><div class="qty"><button data-quantity="-1" aria-label="Decrease quantity">−</button><b>${quantity}</b><button data-quantity="1" aria-label="Increase quantity">+</button></div><b class="f" style="font-size:22px">${money(product.p*quantity)}</b></div>`+
-      `<p style="margin:10px 0 0"><button class="btn" data-add>Add to backpack</button></p>`+
-      `</div></div>`;
+      `<button class="x pv-close" aria-label="Close details">✕</button>`+
+      `<div class="pv-scroll">`+
+        `<div class="pv-img-wrap">${art(product,'pv-art')}</div>`+
+        `<div class="pv-body">`+
+          `<span class="pv-badge">Crafting recipe · LV ${product.lv}</span>`+
+          `<h2 class="pv-title">${product.n}</h2>`+
+          descHTML+
+          matsHTML+
+          sizeRow+
+          careRow+
+          `<div class="pv-field"><span class="pv-label">Ribbon: <strong>${RIBBON_NAMES[color]}</strong></span></div>`+
+          `<div class="sw pv-sw" role="group" aria-label="Choose ribbon colour">${RIBBON_COLORS.map((value,index)=>`<button style="background:${value}" data-color="${index}" aria-pressed="${index===color}" aria-label="${RIBBON_NAMES[index]} ribbon" title="${RIBBON_NAMES[index]}"><span class="ribbon-check" aria-hidden="true">${index===color?'✓':''}</span></button>`).join('')}</div>`+
+        `</div>`+
+      `</div>`+
+      `<div class="pv-footer">`+
+        `<div class="pv-qty-row">`+
+          `<div class="qty pv-qty"><button data-quantity="-1" aria-label="Decrease quantity">−</button><b>${quantity}</b><button data-quantity="1" aria-label="Increase quantity">+</button></div>`+
+          `<span class="pv-price">${money(product.p*quantity)}</span>`+
+        `</div>`+
+        `<button class="btn pv-cta" data-add>Add to backpack</button>`+
+      `</div>`;
   };
   draw();
   $('#modal').classList.add('on');
