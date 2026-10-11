@@ -1,0 +1,4 @@
+cd "C:\Users\bisht\Desktop\Varsha Website"
+git add data/catalog.json
+git commit -m "Update products"
+git push origin main

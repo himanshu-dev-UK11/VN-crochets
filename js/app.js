@@ -4,7 +4,7 @@ const state=loadState();const $=selector=>document.querySelector(selector);const
 const art=(product, className='', label=false)=>{
   if(product.image){
     const x=product.imageX??50, y=product.imageY??50, z=product.imageZoom||100;
-    return `<div class="art ${className}" style="background-color:${product.bg};background-image:url('${product.image}');background-position:${x}% ${y}%;background-size:${z}%;background-repeat:no-repeat;">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
+    return `<div class="art ${className}" style="background-color:${product.bg};"><img src="${product.image}" alt="${product.n} crochet piece" loading="lazy" style="object-position:${x}% ${y}%;transform:scale(${z/100});">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
   }
   return `<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
 };
@@ -60,6 +60,7 @@ function renderGrid(){
     requestAnimationFrame(()=>{
       grid.innerHTML=realHTML;
       grid.removeAttribute('aria-busy');
+      grid.setAttribute('aria-label','Product catalogue');
       if(window._reObserveGrid)window._reObserveGrid();
     });
   } else {
@@ -68,6 +69,7 @@ function renderGrid(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       grid.innerHTML=realHTML;
       grid.removeAttribute('aria-busy');
+      grid.setAttribute('aria-label','Product catalogue');
       if(window._reObserveGrid)window._reObserveGrid();
     }));
   }
@@ -106,7 +108,7 @@ function update(){$('#cnt').textContent=itemCount(state);$('#pts').textContent=s
 
 function closeOverlays(){
   const modal=$('#modal');const drawer=$('#drawer');
-  releaseFocus(modal);releaseFocus(drawer);
+  releaseFocus($('#mcard'));releaseFocus($('#bagp'));
   modal.classList.remove('on');drawer.classList.remove('on');
 }
 
@@ -271,33 +273,6 @@ $('#req').addEventListener('submit',event=>{
   event.target.reset();
 });
 
-
-// ── Pull-to-refresh: reload page when user pulls down on mobile ────────────
-(function initPullToRefresh() {
-  let startY = 0;
-  let pulling = false;
-  const THRESHOLD = 90; // px to pull before refresh triggers
-
-  document.addEventListener('touchstart', (e) => {
-    // Only trigger when scrolled to top
-    if (window.scrollY === 0) {
-      startY = e.touches[0].clientY;
-      pulling = true;
-    }
-  }, { passive: true });
-
-  document.addEventListener('touchmove', (e) => {
-    if (!pulling) return;
-    const dy = e.touches[0].clientY - startY;
-    if (dy > THRESHOLD && window.scrollY === 0) {
-      pulling = false;
-      // Force full reload bypassing cache
-      window.location.reload(true);
-    }
-  }, { passive: true });
-
-  document.addEventListener('touchend', () => { pulling = false; }, { passive: true });
-})();
 
 // Boot: fetch live catalog from server, then render everything
 initCatalog().then(() => {

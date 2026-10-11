@@ -5,6 +5,8 @@ This is the living plan for VN crochet. Keep it short, concrete, and ordered by 
 ## Now
 
 - **Mobile-first is a non-negotiable product rule.** Design and validate the 320–430px experience first, including safe-area insets, fixed navigation, scrolling, tap targets, and end-of-content spacing; desktop is an enhancement, never the baseline.
+- **Show the real handmade range before polishing the shell.** The storefront now showcases six image-backed creations from the current studio photo set, with product-specific names, sizes, materials, care notes, and gift context.
+- **Keep the shop photo-led and calm.** The storefront now uses real product imagery, semantic lazy-loaded images, compact catalogue controls, clearer empty states, inline custom-request confirmation, and a quieter desktop/mobile hierarchy.
 - **Keep the mobile system structurally simple.** Prefer one normal document flow plus one fixed navigation dock; avoid decorative pseudo-elements, nested fixed surfaces, viewport-width hacks, and stacked shadows when they can obscure content or create clipping.
 - Keep the static modular shop polished and usable.
 - Use the current small module split as the baseline for future multi-page work: shared data, browser state, and visual system; page-specific markup stays local.

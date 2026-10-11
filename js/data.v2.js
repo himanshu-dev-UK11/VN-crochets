@@ -4,11 +4,8 @@
 export const PRODUCTS = [];
 
 export async function initCatalog() {
-  // Support both file:// (VS Code preview) and http:// (local server / live site)
-  const base = window.location.protocol === 'file:'
-    ? window.location.href.replace(/\/[^/]*$/, '')  // same directory as index.html
-    : '';
-  const url = base ? base + '/data/catalog.json' : '/data/catalog.json';
+  // Resolve from this module so root and nested pages work in file previews too.
+  const url = new URL('../data/catalog.json', import.meta.url).href;
 
   try {
     const res = await fetch(url);
@@ -17,7 +14,12 @@ export async function initCatalog() {
     // Only show published items to shoppers
     const active = all.filter(p => p.active !== false);
     PRODUCTS.length = 0;
-    active.forEach(p => PRODUCTS.push(p));
+    active.forEach(p => {
+      if (p.image?.startsWith('/') && window.location.protocol === 'file:') {
+        p.image = new URL(`..${p.image}`, import.meta.url).href;
+      }
+      PRODUCTS.push(p);
+    });
   } catch (err) {
     console.warn('Could not load catalog.', err);
     // Empty — do not show demo products on a real shop

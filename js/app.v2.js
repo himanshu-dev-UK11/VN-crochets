@@ -4,7 +4,7 @@ const state=loadState();const $=selector=>document.querySelector(selector);const
 const art=(product, className='', label=false)=>{
   if(product.image){
     const x=product.imageX??50, y=product.imageY??50, z=product.imageZoom||100;
-    return `<div class="art ${className}" style="background-color:${product.bg};background-image:url('${product.image}');background-position:${x}% ${y}%;background-size:${z}%;background-repeat:no-repeat;">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
+    return `<div class="art ${className}" style="background-color:${product.bg};"><img src="${product.image}" alt="${product.n} crochet piece" loading="lazy" style="object-position:${x}% ${y}%;transform:scale(${z/100});">${label?`<span class="lv">${product.c}</span>`:''}</div>`;
   }
   return `<div class="art ${className}" style="background:${product.bg}">${label?`<span class="lv">${product.c}</span>`:''}${product.e}</div>`;
 };
@@ -37,8 +37,8 @@ let _gridFirstRender=true;
 function renderGrid(){
   const categories=['All',...new Set(PRODUCTS.map(product=>product.c))];
   $('#filters').innerHTML=
-    `<label class="search">Find a piece<input id="search" type="search" placeholder="Mushroom, frog, forest..." value="${state.query}"></label>`+
-    categories.map(category=>`<button class="pill" aria-pressed="${category===state.cat}" data-category="${category}">${category}</button>`).join('')+
+    `<label class="search">Find a piece<input id="search" type="search" placeholder="Try “gift”, “plush”, or “pink”" value="${state.query}"></label>`+
+    `<div class="category-rail" role="group" aria-label="Browse by collection">${categories.map(category=>`<button class="pill" aria-pressed="${category===state.cat}" data-category="${category}">${category}</button>`).join('')}</div>`+
     `<select id="sort" aria-label="Sort products"><option value="feat">Featured</option><option value="lo">Price: low</option><option value="hi">Price: high</option></select>`;
   $('#sort').value=state.sort;
 
@@ -50,8 +50,8 @@ function renderGrid(){
   // task #10 — collection heading
   const heading=products.length?`<h2 class="collection-heading">${state.cat==='All'?'The collection':state.cat}</h2>`:'';
   const realHTML=heading+(products.length
-    ?products.map(product=>`<button class="item" data-product="${product.id}">${art(product,'',true)}<h3>${product.n}</h3><div class="price"><span>${product.s}</span><b>${money(product.p)}</b></div></button>`).join('')
-    :'<div class="panel empty"><h3>Nothing matched that search.</h3><p>Try a different name, collection, or material.</p></div>');
+    ?products.map(product=>`<button class="item" data-product="${product.id}" aria-label="View ${product.n}, ${money(product.p)}">${art(product,'',true)}<div class="item-copy"><span class="item-kind">${product.c}</span><h3>${product.n}</h3><p>${product.s||'Made in a small batch'}</p><div class="price"><span>${product.c==='Keychains'?'Tiny gift':'Handmade piece'}</span><b>${money(product.p)}</b></div></div></button>`).join('')
+    :'<div class="panel empty"><span class="empty-mark">⌕</span><h3>Nothing matched that search.</h3><p>Try another word, clear the search, or tell us what you have in mind.</p><button class="btn" id="clearSearch" type="button">Show all pieces</button><button class="text-link" id="emptyCustom" type="button">Ask about a custom idea</button></div>');
 
   const grid=$('#grid');
 
@@ -60,6 +60,8 @@ function renderGrid(){
     requestAnimationFrame(()=>{
       grid.innerHTML=realHTML;
       grid.removeAttribute('aria-busy');
+      grid.setAttribute('aria-label','Product catalogue');
+      $('#catalogStatus').textContent=`Showing ${products.length} ${products.length===1?'piece':'pieces'}`;
       if(window._reObserveGrid)window._reObserveGrid();
     });
   } else {
@@ -68,6 +70,8 @@ function renderGrid(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       grid.innerHTML=realHTML;
       grid.removeAttribute('aria-busy');
+      grid.setAttribute('aria-label','Product catalogue');
+      $('#catalogStatus').textContent=`Showing ${products.length} ${products.length===1?'piece':'pieces'}`;
       if(window._reObserveGrid)window._reObserveGrid();
     }));
   }
@@ -106,7 +110,7 @@ function update(){$('#cnt').textContent=itemCount(state);$('#pts').textContent=s
 
 function closeOverlays(){
   const modal=$('#modal');const drawer=$('#drawer');
-  releaseFocus(modal);releaseFocus(drawer);
+  releaseFocus($('#mcard'));releaseFocus($('#bagp'));
   modal.classList.remove('on');drawer.classList.remove('on');
 }
 
@@ -181,6 +185,8 @@ document.addEventListener('click',event=>{
   if(tab)showView(tab.dataset.view);
   if(target.id==='goShop')$('#filters').scrollIntoView({behavior:'smooth'});
   if(target.dataset.category){state.cat=target.dataset.category;renderGrid();}
+  if(target.id==='clearSearch'){state.query='';state.cat='All';renderGrid();}
+  if(target.id==='emptyCustom'){showView('order');}
   if(target.closest('.item'))openProduct(target.closest('.item').dataset.product);
   if(target.id==='modal')closeOverlays();
   if(target.closest('#openBag')){$('#drawer').classList.add('on');renderBag();trapFocus($('#bagp'));}
@@ -267,37 +273,15 @@ $('#req').addEventListener('submit',event=>{
   nameEl.value=name;
   descEl.value=desc;
 
-  toast(`Request posted, ${name}! We'll quote within 48h 📮`);
+  const status=$('#requestStatus');
+  if(status){
+    status.textContent=`Thanks, ${name}. Your idea is noted locally; we'll quote within 48 hours.`;
+    status.hidden=false;
+  }
+  toast(`Request noted, ${name}! 📮`);
   event.target.reset();
 });
 
-
-// ── Pull-to-refresh: reload page when user pulls down on mobile ────────────
-(function initPullToRefresh() {
-  let startY = 0;
-  let pulling = false;
-  const THRESHOLD = 90; // px to pull before refresh triggers
-
-  document.addEventListener('touchstart', (e) => {
-    // Only trigger when scrolled to top
-    if (window.scrollY === 0) {
-      startY = e.touches[0].clientY;
-      pulling = true;
-    }
-  }, { passive: true });
-
-  document.addEventListener('touchmove', (e) => {
-    if (!pulling) return;
-    const dy = e.touches[0].clientY - startY;
-    if (dy > THRESHOLD && window.scrollY === 0) {
-      pulling = false;
-      // Force full reload bypassing cache
-      window.location.reload(true);
-    }
-  }, { passive: true });
-
-  document.addEventListener('touchend', () => { pulling = false; }, { passive: true });
-})();
 
 // Boot: fetch live catalog from server, then render everything
 initCatalog().then(() => {

@@ -32,7 +32,7 @@ function renderSummary() {
     const product = PRODUCTS.find((p) => String(p.id) === String(item.id));
     if (!product) return '';
     const artInner = product.image
-      ? `<img src="${product.image}" alt="${product.n}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+      ? `<img src="${product.image}" alt="${product.n} crochet piece" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
       : product.e;
     return `
       <article class="checkout-item">
@@ -49,7 +49,7 @@ function renderSummary() {
   }).join('');
 
   const shipping   = sum >= SHIPPING_THRESHOLD ? 0 : 199;
-  const grandTotal = total(state, PRODUCTS);
+  const grandTotal = total(state, PRODUCTS) + shipping;
 
   totalsRoot.innerHTML = `
     <div class="mat"><span>Subtotal</span><b>${money(sum)}</b></div>
@@ -185,7 +185,7 @@ function buildFallbackWaUrl({ name, email, city, notes }) {
   const OWNER_WA = '918923646175';
   const sum      = subtotal(state, PRODUCTS);
   const shipping = sum >= SHIPPING_THRESHOLD ? 0 : 199;
-  const grand    = total(state, PRODUCTS);
+  const grand    = total(state, PRODUCTS) + shipping;
 
   const lines = [
     `🧶 *New Order — VN crochet*`,

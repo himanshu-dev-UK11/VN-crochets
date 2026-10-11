@@ -41,17 +41,18 @@
      <div class="panel hero">
        <div>
          <span class="tag">Crochet keepsakes · India</span>
-         <h1>Handmade crochet pieces worth keeping.</h1>
-         <p class="hero-desc-full">Each piece is made by hand — a crochet friend, a desk companion, or a thoughtful gift for someone who notices small things. Browse finished pieces or start a custom idea.</p>
-         <p class="hero-desc-short">Made by hand, one at a time. Browse finished pieces or send a custom idea.</p>
+         <h1>Small handmade joys for shelves, bags, and gifting.</h1>
+         <p class="hero-desc-full">VN crochet makes soft companions, tiny botanicals, and useful little charms in small batches. Find a finished piece or bring us an idea to make together.</p>
+         <p class="hero-desc-short">Small-batch crochet for shelves, bags, and thoughtful gifting.</p>
          <p style="margin-top:16px"><button class="btn" id="goShop">Browse the collection</button></p>
        </div>
        <div class="stage">
-         <span class="big" id="hero" role="img" aria-label="Crochet mushroom">🍄</span>
-         <small id="heroSay">Tap for a tiny hello.</small>
+         <img class="hero-photo" id="hero" src="images/product-sample.jpeg" alt="Sunny Chick crochet plush on a warm studio table" loading="eager">
+         <small id="heroSay">A little piece, made slowly.</small>
        </div>
      </div>
      <div class="bar" id="filters"></div>
+     <p class="catalog-status" id="catalogStatus" role="status" aria-live="polite"></p>
      <div class="grid" id="grid" aria-busy="true" aria-label="Loading catalogue">
        <div class="skel-heading skel-bone"></div>
        <div class="skel-card" aria-hidden="true"><div class="skel-art skel-bone"></div><div class="skel-title skel-bone"></div><div class="skel-sub skel-bone"></div><div class="skel-price skel-bone"></div></div>
@@ -120,6 +121,7 @@
            <label class="rv">What should we make?<textarea required id="rd" rows="4" placeholder="A 20cm axolotl with a tiny party hat..."></textarea></label>
            <label class="rv">Size<select id="rs" style="margin:0"><option>Mini (8cm)</option><option>Standard (15cm)</option><option>Large (25cm)</option></select></label>
            <button class="rv btn g" type="submit">Send request</button>
+           <p id="requestStatus" class="request-status" role="status" hidden></p>
          </form>
        </div>
      </div>
@@ -130,7 +132,7 @@
  <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Backpack"><div class="card bagp" id="bagp"></div></div>
  <div class="toast" id="toast" role="status"></div>
 
- <footer style="max-width:1060px;margin:0 auto;padding:0 14px 34px;color:var(--ink)">
+ <footer class="site-footer">
    <details class="maker-note">
      <summary>About the studio</summary>
      <p>VN crochet is a one-person studio based in India. Cotton and milk-cotton yarns, careful stuffing, hand-stitched details — every piece is made slowly and checked before it leaves. If you have a creature or keepsake in mind that isn't in the shop, the Custom Work tab is the right place to start.</p>
@@ -138,8 +140,11 @@
    </details>
    <div class="panel footer-bar">
      <div>
-       <b class="f">VN crochet</b><br>
-       <small style="color:var(--soft)">Handmade crochet and yarn art.</small>
+       <b class="f">VN crochet</b>
+       <small>Handmade in India, one piece at a time.</small>
+     </div>
+     <div class="footer-promise">
+       <span>Small batches</span><span>Care notes included</span><span>Demo checkout</span>
      </div>
    </div>
  </footer>
