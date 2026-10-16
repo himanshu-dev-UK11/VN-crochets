@@ -1,149 +1,172 @@
 /**
- * VN crochet – local dev server
+ * VN crochet — local dev server
  *
- * Serves the static site and provides three API endpoints:
- *   GET  /api/catalog          → full catalog array (JSON)
- *   POST /api/catalog          → save full catalog array (JSON body)
- *   POST /api/upload           → upload one product image, returns { url }
+ *   npm start   →  http://localhost:3000        (shop)
+ *                  http://localhost:3000/admin/ (admin panel)
  *
- * Images land in /uploads/ and are served at /uploads/<filename>.
- * Catalog is persisted to /data/catalog.json.
+ * Speaks exactly the same /api contract as the Azure Functions in /api, and
+ * reuses their sign-in and validation code, so what works here works live.
+ * Data is kept in local files instead of Azure Storage:
+ *   data/catalog.json        products (also the shop's offline fallback)
+ *   data/settings.json       shop settings
+ *   data/orders.local.json   orders (git-ignored)
+ *   images/                  uploaded photos
  *
- * Run:  node server.js
- * Then open:  http://localhost:3000
+ * Admin username/password/JWT_SECRET are read from api/local.settings.json.
  */
 
 'use strict';
 
-const express  = require('express');
-const multer   = require('multer');
-const cors     = require('cors');
-const path     = require('path');
-const fs       = require('fs');
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
 
-const app  = express();
-const PORT = 3000;
 const ROOT = __dirname;
-const CATALOG_FILE = path.join(ROOT, 'data', 'catalog.json');
-const UPLOADS_DIR  = path.join(ROOT, 'images');
+const PORT = Number(process.env.PORT) || 3000;
+const FILES = {
+  catalog: path.join(ROOT, 'data', 'catalog.json'),
+  settings: path.join(ROOT, 'data', 'settings.json'),
+  orders: path.join(ROOT, 'data', 'orders.local.json'),
+  images: path.join(ROOT, 'images')
+};
 
-// ── Ensure storage directories exist ─────────────────────────────────────────
-fs.mkdirSync(path.join(ROOT, 'data'),    { recursive: true });
-fs.mkdirSync(UPLOADS_DIR,               { recursive: true });
-
-// ── Multer: store uploads on disk with original extension ─────────────────────
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename:    (_req,  file, cb) => {
-    const ext  = path.extname(file.originalname).toLowerCase() || '.jpg';
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    cb(null, name);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 4 * 1024 * 1024 },  // 4 MB
-  fileFilter: (_req, file, cb) => {
-    const ok = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
-    cb(ok ? null : new Error('Only JPG, PNG, or WebP images are accepted.'), ok);
-  }
-});
-
-// ── Middleware ────────────────────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json({ limit: '1mb' }));
-
-// Serve uploaded images
-app.use('/images', express.static(UPLOADS_DIR));
-
-// Serve the entire project as static files (index.html, admin/, pages/, css/, js/)
-app.use(express.static(ROOT, { index: 'index.html' }));
-
-// ── Catalog helpers ───────────────────────────────────────────────────────────
-const BASE_PRODUCTS = [
-  {id:1,n:'Moss the Mushroom',e:'🍄',c:'Forest',p:599,lv:1,bg:'#ffc9c9',s:'12 cm',m:[['Cotton yarn','2 skeins'],['Poly fill','30 g']],d:'A soft red cap and sleepy stitched eyes for a calm little desk corner. Makes a gentle gift for anyone who loves slow, quiet things.',care:'Spot-clean with a damp cloth. Avoid machine wash to keep the shape.',stock:5,featured:true,active:true},
-  {id:2,n:'Pip the Frog',e:'🐸',c:'Pond',p:699,lv:2,bg:'#c7f2d4',s:'15 cm',m:[['Cotton yarn','3 skeins'],['Safety eyes','2 pcs']],d:'A wide smile and bendy legs that make a cheerful shelf companion. The cotton yarn is soft enough to squeeze without squishing the shape.',care:'Hand wash cold, reshape while damp, air dry flat.',stock:4,featured:true,active:true},
-  {id:3,n:'Barley Bear',e:'🐻',c:'Forest',p:999,lv:2,bg:'#ffe0b5',s:'20 cm',m:[['Milk cotton','4 skeins'],['Poly fill','60 g']],d:'A warm, classic bear with a generous shape and an easygoing expression. The milk-cotton yarn gives it a slightly matte, grown-up finish that photographs well.',care:'Hand wash cold. Squeeze out water gently, do not wring.',stock:3,featured:true,active:true},
-  {id:4,n:'Inky the Octopus',e:'🐙',c:'Pond',p:549,lv:1,bg:'#e3d4ff',s:'14 cm',m:[['Cotton yarn','2 skeins'],['Poly fill','25 g']],d:'Eight soft curly arms, made for a comforting handful and a colourful shelf. A popular desk companion for anyone who likes things a little unusual.',care:'Spot-clean only — the curly arms keep their bounce better when dry.',stock:6,featured:true,active:true},
-  {id:5,n:'Clover Bunny',e:'🐰',c:'Meadow',p:799,lv:2,bg:'#ffd6ea',s:'18 cm',m:[['Velvet yarn','3 skeins'],['Wire ears','1 pair']],d:'Floppy ears, a fluffy tail, and tiny blush cheeks for a thoughtful gift. The velvet yarn feels noticeably different — much softer than standard cotton.',care:'Hand wash cold in a small basin, reshape ears gently, air dry.',stock:4,featured:true,active:true},
-  {id:6,n:'Sunny Sunflower',e:'🌻',c:'Meadow',p:449,lv:1,bg:'#fff0a8',s:'25 cm',m:[['Cotton yarn','2 skeins'],['Green wire','1 stem']],d:'A bright, everlasting bloom for a desk, bedside table, or sunny corner. The stem is poseable — you can angle it just right and it holds.',care:'Keep out of direct sunlight to preserve the yellow. Dust gently.',stock:8,featured:true,active:true},
-  {id:7,n:'Tuck the Turtle',e:'🐢',c:'Pond',p:899,lv:3,bg:'#c9f0e8',s:'16 cm',m:[['Cotton yarn','3 skeins'],['Felt','1 sheet']],d:'A textured shell and removable bandana for a slow, steady companion. The bandana comes in whichever ribbon colour you pick at checkout.',care:'Remove the bandana before washing. Hand wash cold, air dry.',stock:3,featured:true,active:true},
-  {id:8,n:'Ember Fox',e:'🦊',c:'Forest',p:1199,lv:3,bg:'#ffd0b0',s:'22 cm',m:[['Milk cotton','4 skeins'],['Poly fill','70 g']],d:'A russet fox with a fluffy cream-tipped tail and a quietly confident look. One of the most asked-about pieces — it ships in a small ribbon-tied box.',care:'Hand wash cold. The tail keeps its fluff best when air-dried away from heat.',stock:2,featured:true,active:true}
-];
-
-function readCatalog() {
-  try {
-    const raw = fs.readFileSync(CATALOG_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : BASE_PRODUCTS;
-  } catch {
-    return BASE_PRODUCTS;
-  }
+// ── Credentials: same variables the live API uses ───────────────────────────
+try {
+  const local = JSON.parse(fs.readFileSync(path.join(ROOT, 'api', 'local.settings.json'), 'utf8'));
+  for (const [k, v] of Object.entries(local.Values || {})) if (v && !process.env[k]) process.env[k] = v;
+} catch {
+  console.warn('  ! api/local.settings.json not found — copy local.settings.json.example and fill it in.');
 }
 
-function writeCatalog(catalog) {
-  fs.writeFileSync(CATALOG_FILE, JSON.stringify(catalog, null, 2), 'utf8');
+const auth = require('./api/shared/auth');
+const {cleanProducts, cleanSettings, cleanOrder, DEFAULT_SETTINGS, ORDER_STATUSES} = require('./api/shared/validate');
+
+// ── File helpers ────────────────────────────────────────────────────────────
+const readJson = (file, fallback) => {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; }
+};
+const writeJson = (file, data) => {
+  // Write to a temp file then rename, so a crash never leaves half a file.
+  const tmp = `${file}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
+  fs.renameSync(tmp, file);
+};
+function readStore() {
+  const products = readJson(FILES.catalog, []);
+  const settings = cleanSettings(readJson(FILES.settings, DEFAULT_SETTINGS));
+  const etag = '"' + crypto.createHash('sha1').update(JSON.stringify([products, settings])).digest('hex').slice(0, 16) + '"';
+  return {products: Array.isArray(products) ? products : [], settings, etag};
 }
 
-// Seed catalog.json if it doesn't exist yet
-if (!fs.existsSync(CATALOG_FILE)) {
-  writeCatalog(BASE_PRODUCTS);
-}
+fs.mkdirSync(FILES.images, {recursive: true});
 
-// ── Routes ────────────────────────────────────────────────────────────────────
+// ── App ─────────────────────────────────────────────────────────────────────
+const app = express();
+app.use(express.json({limit: '8mb'}));
+app.use((req, res, next) => { if (req.path.startsWith('/api/')) res.set('Cache-Control', 'no-store'); next(); });
 
+const requireAdmin = (req, res, next) =>
+  auth.isAdmin(req.headers) ? next() : res.status(401).json({error: 'Your session has ended. Sign in again.'});
 
-// POST /api/login — simple local auth (no real JWT needed for local dev)
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  // Simple check - for local dev only
-  if (username === 'varsha75' && password === 'varsha2812') {
-    // Return a fake token that admin.js will accept
-    const fakeToken = Buffer.from(`${username}:${password}`).toString('base64');
-    res.json({ token: fakeToken });
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+app.post('/api/login', async (req, res) => {
+  const ip = req.ip;
+  const wait = auth.lockedFor(ip);
+  if (wait) return res.status(429).json({error: `Too many attempts. Try again in ${wait} minute${wait === 1 ? '' : 's'}.`});
+  const {username, password, remember} = req.body || {};
+  if (auth.checkCredentials(username, password)) {
+    auth.clearFails(ip);
+    return res.json(auth.issueToken(remember === true));
   }
+  auth.recordFail(ip);
+  await new Promise((r) => setTimeout(r, 600));
+  res.status(401).json({error: 'That username and password don’t match.'});
 });
 
-// GET /api/catalog  — returns the full catalog (active + drafts for admin)
-app.get('/api/catalog', (_req, res) => {
-  res.json(readCatalog());
+app.get('/api/catalog', (req, res) => {
+  const store = readStore();
+  if (req.query.all === '1' && auth.isAdmin(req.headers)) return res.json(store);
+  res.json({products: store.products.filter((p) => p.active !== false), settings: store.settings});
 });
 
-// POST /api/catalog  — replaces the full catalog (admin saves)
-app.post('/api/catalog', (req, res) => {
-  const catalog = req.body;
-  if (!Array.isArray(catalog)) {
-    return res.status(400).json({ error: 'Expected a catalog array.' });
+app.put('/api/catalog', requireAdmin, (req, res) => {
+  const body = req.body || {};
+  const current = readStore();
+  if (body.etag && body.etag !== current.etag) {
+    return res.status(409).json({error: 'The shop was changed on another device. Reload to get the latest version, then make your change again.'});
   }
-  writeCatalog(catalog);
-  res.json({ ok: true, count: catalog.length });
+  const products = cleanProducts(body.products);
+  const settings = cleanSettings(body.settings);
+  writeJson(FILES.catalog, products);
+  writeJson(FILES.settings, settings);
+  const saved = readStore();
+  res.json({ok: true, etag: saved.etag, updatedAt: new Date().toISOString(), products, settings});
 });
 
-// POST /api/upload  — upload one image, get back its public URL
-app.post('/api/upload', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No image file received.' });
+app.post('/api/upload', requireAdmin, (req, res) => {
+  const data = String(req.body?.data || '').replace(/^data:[^,]*,/, '');
+  const buf = Buffer.from(data, 'base64');
+  if (!buf.length) return res.status(400).json({error: 'No image was received.'});
+  if (buf.length > 4 * 1024 * 1024) return res.status(413).json({error: 'That image is larger than 4 MB.'});
+  const ext = buf.toString('ascii', 8, 12) === 'WEBP' ? 'webp'
+    : buf[0] === 0xff && buf[1] === 0xd8 ? 'jpg'
+    : buf.toString('hex', 0, 8) === '89504e470d0a1a0a' ? 'png' : null;
+  if (!ext) return res.status(415).json({error: 'Use a JPG, PNG or WebP photo.'});
+  const name = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  fs.writeFileSync(path.join(FILES.images, name), buf);
+  res.json({ok: true, url: `/images/${name}`});
+});
+
+app.post('/api/orders', (req, res) => {
+  const store = readStore();
+  const order = cleanOrder(req.body, store.products, store.settings);
+  order.id = 'VN-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+  order.createdAt = new Date().toISOString();
+  order.key = `orders/${order.createdAt}-${order.id}.json`;
+  const all = readJson(FILES.orders, []);
+  all.push(order);
+  writeJson(FILES.orders, all);
+  res.json({ok: true, orderId: order.id, total: order.total});
+});
+
+app.get('/api/orders', requireAdmin, (_req, res) => {
+  const all = readJson(FILES.orders, []);
+  res.json({orders: all.slice().reverse()});
+});
+
+app.patch('/api/orders', requireAdmin, (req, res) => {
+  const {key, status} = req.body || {};
+  if (!ORDER_STATUSES.includes(status)) return res.status(400).json({error: 'Unknown order status.'});
+  const all = readJson(FILES.orders, []);
+  const order = all.find((o) => o.key === key);
+  if (!order) return res.status(404).json({error: 'That order no longer exists.'});
+  order.status = status;
+  order.updatedAt = new Date().toISOString();
+  writeJson(FILES.orders, all);
+  res.json({ok: true, order});
+});
+
+app.use('/api', (_req, res) => res.status(404).json({error: 'Not found.'}));
+
+// Static site. Never serve server-side secrets or tooling.
+app.use((req, res, next) => {
+  if (/^\/(api|node_modules|\.git|\.github|\.vscode|\.kilo)(\/|$)/.test(req.path) || /\.(md|zip)$/i.test(req.path) || req.path === '/server.js') {
+    return res.status(404).send('Not found');
   }
-  const url = `/uploads/${req.file.filename}`;
-  res.json({ ok: true, url });
+  next();
 });
+app.use(express.static(ROOT, {index: 'index.html', extensions: ['html']}));
+app.use((_req, res) => res.status(404).sendFile(path.join(ROOT, '404.html')));
 
-// ── 404 fallback ──────────────────────────────────────────────────────────────
-app.use((_req, res) => res.status(404).send('Not found'));
-
-// ── Error handler ─────────────────────────────────────────────────────────────
+// Errors (including validation) come back as clear JSON messages.
 app.use((err, _req, res, _next) => {
-  console.error(err.message);
-  res.status(err.status || 500).json({ error: err.message });
+  const status = err.status || (err.type === 'entity.too.large' ? 413 : 500);
+  if (status >= 500) console.error(err);
+  res.status(status).json({error: status === 413 ? 'That upload is too large.' : err.status ? err.message : 'Something went wrong on the server.'});
 });
 
 app.listen(PORT, () => {
-  console.log(`\n  VN crochet dev server running at  http://localhost:${PORT}`);
-  console.log(`  Admin desk:                        http://localhost:${PORT}/admin/`);
-  console.log(`  API:                               http://localhost:${PORT}/api/catalog\n`);
+  console.log(`\n  VN crochet is running`);
+  console.log(`    Shop   http://localhost:${PORT}`);
+  console.log(`    Admin  http://localhost:${PORT}/admin/\n`);
 });
-
-

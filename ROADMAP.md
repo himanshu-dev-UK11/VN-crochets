@@ -5,7 +5,7 @@ This is the living plan for VN crochet. Keep it short, concrete, and ordered by 
 ## Now
 
 - **Mobile-first is a non-negotiable product rule.** Design and validate the 320–430px experience first, including safe-area insets, fixed navigation, scrolling, tap targets, and end-of-content spacing; desktop is an enhancement, never the baseline.
-- **Show the real handmade range before polishing the shell.** The storefront now showcases six image-backed creations from the current studio photo set, with product-specific names, sizes, materials, care notes, and gift context.
+- **Show the real handmade range before polishing the shell.** The storefront now showcases sixteen image-backed creations from the current studio photo set, with product-specific names, sizes, materials, care notes, and gift context.
 - **Keep the shop photo-led and calm.** The storefront now uses real product imagery, semantic lazy-loaded images, compact catalogue controls, clearer empty states, inline custom-request confirmation, and a quieter desktop/mobile hierarchy.
 - **Keep the mobile system structurally simple.** Prefer one normal document flow plus one fixed navigation dock; avoid decorative pseudo-elements, nested fixed surfaces, viewport-width hacks, and stacked shadows when they can obscure content or create clipping.
 - Keep the static modular shop polished and usable.
@@ -13,6 +13,10 @@ This is the living plan for VN crochet. Keep it short, concrete, and ordered by 
 - Replace emoji product art with consistent original photography or illustrations.
 - Refine catalogue content, care details, shipping copy, and custom-order expectations.
 - Add focused browser checks for shop, backpack, quests, and custom request flows.
+
+## 2026-10-16 · Expanded studio photo catalogue
+
+Added the ten remaining product photos from the studio image set to the storefront catalogue, bringing the published collection from six to sixteen products across plush, botanical, little-gift, and keychain categories.
 
 ## Next
 

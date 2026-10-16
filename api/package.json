@@ -1,10 +1,9 @@
 {
   "name": "vncrochet-api",
-  "version": "1.0.0",
-  "description": "Azure Functions API for VN crochet",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Azure Functions API for VN crochet (admin, catalogue, uploads, orders)",
   "dependencies": {
-    "@azure/data-tables": "^13.2.2",
-    "@azure/storage-blob": "^12.24.0",
-    "jsonwebtoken": "^9.0.2"
+    "@azure/storage-blob": "^12.26.0"
   }
 }

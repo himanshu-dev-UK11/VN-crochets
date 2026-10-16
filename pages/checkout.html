@@ -1,74 +1,88 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Your order | VN crochet</title>
-
-  <!-- SEO — checkout page should not appear in search results -->
-  <meta name="robots" content="noindex, nofollow">
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Your order | VN crochet">
-  <meta property="og:description" content="Review and confirm your VN crochet order.">
-  <meta property="og:site_name" content="VN crochet">
-
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checkout | VN crochet</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#fffcf7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Karla:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css?v=6">
 </head>
-<body class="checkout-page">
-  <header class="hud checkout-head">
-    <a class="chip logo" href="../index.html" aria-label="Back to the shop">
-      <i>🧶</i>VN crochet
-    </a>
-    <span class="chip mini-tag">Your order</span>
-  </header>
+<body>
 
-  <main class="checkout-shell">
-    <section class="panel checkout-panel">
-      <div class="check-intro">
-        <span class="tag">Your order</span>
-        <h1>Ready to wrap your little finds?</h1>
-        <p>Fill in your details and we'll be in touch to confirm the order and arrange delivery.</p>
+<header class="site-head">
+  <div class="shell head-in">
+    <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">🧶</span>VN crochet</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../index.html#shop">Shop</a>
+      <a href="../index.html#custom">Custom orders</a>
+    </nav>
+  </div>
+</header>
+
+<main class="shell co-main">
+  <section>
+    <div class="co-head">
+      <span class="eyebrow"><i aria-hidden="true">✦</i>Step 2 of 2: your details</span>
+      <h1>Let's get these wrapped.</h1>
+      <p class="lede">Send your details and we'll confirm the order on WhatsApp, along with delivery timing and payment.</p>
+    </div>
+    <div class="co-list" id="list" aria-live="polite"></div>
+  </section>
+
+  <aside class="co-side">
+    <h2>Order summary</h2>
+    <p>Packed by hand and checked once more before it's posted.</p>
+
+    <div class="co-totals" id="totals"></div>
+
+    <form class="co-form" id="form" novalidate>
+      <label class="field">
+        <span>Your name</span>
+        <input name="name" id="f-name" type="text" placeholder="Asha Narayan" autocomplete="name" required>
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input name="email" id="f-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+      </label>
+      <label class="field">
+        <span>Phone or WhatsApp</span>
+        <input name="phone" id="f-phone" type="tel" placeholder="98765 43210" autocomplete="tel" required>
+      </label>
+      <label class="field">
+        <span>Delivery city</span>
+        <input name="city" id="f-city" type="text" placeholder="Bengaluru" autocomplete="address-level2" required>
+      </label>
+      <label class="field">
+        <span>Notes for the maker <small style="font-weight:400;color:var(--mute)">(optional)</small></span>
+        <textarea name="notes" id="f-notes" rows="3" placeholder="Gift wrap, a colour swap, or a date you need it by"></textarea>
+      </label>
+      <button class="btn btn-wide" type="submit">Place the order</button>
+      <p class="form-note">We'll confirm on WhatsApp before taking any payment.</p>
+    </form>
+
+    <p class="co-status" id="status" aria-live="polite"></p>
+  </aside>
+</main>
+
+<footer class="site-foot">
+  <div class="shell">
+    <div class="foot-in">
+      <div>
+        <div class="foot-brand">VN crochet</div>
+        <p>A one-person crochet studio in India.</p>
       </div>
-
-      <div id="checkout-list" class="checkout-list" aria-live="polite"></div>
-    </section>
-
-    <aside class="panel checkout-panel sidebar">
-      <div class="summary-header">
-        <h2>Summary</h2>
-        <p>Packed with care and a personal check before it ships.</p>
+      <div class="foot-links">
+        <a href="../index.html#shop">Back to the shop</a>
+        <a href="https://wa.me/918923646175" target="_blank" rel="noopener">WhatsApp</a>
       </div>
+    </div>
+  </div>
+</footer>
 
-      <div id="checkout-totals" class="checkout-totals"></div>
-
-      <form id="checkout-form" class="checkout-form">
-        <label>
-          Your name
-          <input name="name" type="text" placeholder="Asha Narayan" required>
-        </label>
-        <label>
-          Email
-          <input name="email" type="email" placeholder="you@example.com" required>
-        </label>
-        <label>
-          Delivery city
-          <input name="city" type="text" placeholder="Bengaluru" required>
-        </label>
-        <label>
-          Notes for the maker
-          <textarea name="notes" rows="4" placeholder="Gift wrap, colour notes, or a special date..."></textarea>
-        </label>
-        <button class="btn g" type="submit">Send order request</button>
-        <a class="btn secondary" href="../index.html">Back to shop</a>
-      </form>
-
-      <p id="checkout-status" class="checkout-status" aria-live="polite"></p>
-    </aside>
-  </main>
-
-  <script type="module" src="./checkout.js"></script>
+<script type="module" src="./checkout.js?v=6"></script>
 </body>
 </html>

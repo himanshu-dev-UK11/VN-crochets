@@ -1,75 +1,52 @@
-const { TableClient } = require('@azure/data-tables');
-const { requireAdmin } = require('../shared/auth');
+const crypto = require('crypto');
+const {clientIp} = require('../shared/auth');
+const {send, readJson, requireAdmin, handler} = require('../shared/http');
+const {readStore, saveOrder, listOrders, updateOrderStatus} = require('../shared/storage');
+const {cleanOrder, cleanSettings, ORDER_STATUSES} = require('../shared/validate');
 
-module.exports = async function (context, req) {
-  const connStr = process.env.STORAGE_CONNECTION_STRING;
-  
-  if (req.method === 'GET') {
-    // Admin only - list orders
-    if (!requireAdmin(req, context)) return;
-    
-    try {
-      if (!connStr) {
-        context.res = { status: 200, headers: { 'Content-Type': 'application/json' }, body: [] };
-        return;
-      }
-      
-      const table = TableClient.fromConnectionString(connStr, 'orders');
-      const orders = [];
-      const entities = table.listEntities();
-      
-      for await (const entity of entities) {
-        orders.push({
-          id: entity.rowKey,
-          customerName: entity.customerName || '',
-          phone: entity.phone || '',
-          items: entity.items ? JSON.parse(entity.items) : [],
-          total: entity.total || 0,
-          timestamp: entity.timestamp || '',
-          status: entity.status || 'pending'
-        });
-      }
-      
-      context.res = {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: orders
-      };
-    } catch (err) {
-      context.log('Error fetching orders:', err);
-      context.res = { status: 500, headers: { 'Content-Type': 'application/json' }, body: { error: 'Failed to fetch orders' } };
+// A light spam brake for the public order form (per server instance).
+const recent = new Map();
+function tooMany(ip) {
+  const now = Date.now();
+  const list = (recent.get(ip) || []).filter((t) => now - t < 3600000);
+  list.push(now);
+  recent.set(ip, list);
+  if (recent.size > 5000) recent.clear();
+  return list.length > 12;
+}
+
+function orderId() {
+  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(5);
+  return 'VN-' + [...bytes].map((b) => alphabet[b % alphabet.length]).join('');
+}
+
+module.exports = handler(async function (context, req) {
+  const method = req.method.toUpperCase();
+
+  if (method === 'POST') {
+    if (tooMany(clientIp(req.headers))) {
+      return send(context, 429, {error: 'Too many orders from this connection. Message us on WhatsApp instead.'});
     }
-  } else {
-    // POST - public, create order
-    try {
-      if (!connStr) {
-        context.res = { status: 500, headers: { 'Content-Type': 'application/json' }, body: { error: 'Storage not configured' } };
-        return;
-      }
-      
-      const table = TableClient.fromConnectionString(connStr, 'orders');
-      const order = req.body;
-      
-      const entity = {
-        partitionKey: 'order',
-        rowKey: Date.now().toString(),
-        customerName: order.name || '',
-        phone: order.phone || '',
-        items: JSON.stringify(order.items || []),
-        total: order.total || 0,
-        timestamp: new Date().toISOString(),
-        status: 'pending'
-      };
-      
-      await table.upsertEntity(entity);
-      context.res = {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: { success: true, orderId: entity.rowKey }
-      };
-    } catch (err) {
-      context.log('Error creating order:', err);
-      context.res = { status: 500, headers: { 'Content-Type': 'application/json' }, body: { error: 'Failed to create order' } };
-    }
+    const store = await readStore();
+    const order = cleanOrder(readJson(req), store && store.products, cleanSettings(store && store.settings));
+    order.id = orderId();
+    order.createdAt = new Date().toISOString();
+    await saveOrder(order);
+    return send(context, 200, {ok: true, orderId: order.id, total: order.total});
   }
-};
+
+  if (!requireAdmin(context, req)) return;
+
+  if (method === 'GET') {
+    return send(context, 200, {orders: await listOrders()});
+  }
+
+  if (method === 'PATCH') {
+    const body = readJson(req) || {};
+    if (!ORDER_STATUSES.includes(body.status)) return send(context, 400, {error: 'Unknown order status.'});
+    return send(context, 200, {ok: true, order: await updateOrderStatus(String(body.key || ''), body.status)});
+  }
+
+  send(context, 405, {error: 'Method not allowed.'});
+});

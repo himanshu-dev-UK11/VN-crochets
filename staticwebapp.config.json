@@ -1,9 +1,19 @@
 {
+  "platform": {
+    "apiRuntime": "node:20"
+  },
   "routes": [
     {
+      "route": "/admin",
+      "redirect": "/admin/",
+      "statusCode": 301
+    },
+    {
       "route": "/admin/*",
-      "redirect": "http://localhost:3000/admin/",
-      "statusCode": 302
+      "headers": {
+        "Cache-Control": "no-cache",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
     },
     {
       "route": "/checkout",
@@ -28,15 +38,21 @@
       }
     },
     {
-      "route": "/og-image.*",
+      "route": "/data/*",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
+    },
+    {
+      "route": "/images/*",
       "headers": {
         "Cache-Control": "public, max-age=604800"
       }
     },
     {
-      "route": "/data/*",
+      "route": "/og-image.*",
       "headers": {
-        "Cache-Control": "no-cache"
+        "Cache-Control": "public, max-age=604800"
       }
     }
   ],
@@ -47,7 +63,8 @@
       "/js/*",
       "/admin/*",
       "/api/*",
-      "/uploads/*",
+      "/images/*",
+      "/data/*",
       "/*.svg",
       "/*.png",
       "/*.jpg",
@@ -67,10 +84,9 @@
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
-    "X-XSS-Protection": "1; mode=block",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.blob.core.windows.net; connect-src 'self' https://*.blob.core.windows.net https://wa.me; navigate-to 'self' https://wa.me https://api.whatsapp.com"
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.blob.core.windows.net; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
   },
   "mimeTypes": {
     ".svg": "image/svg+xml",

@@ -9,19 +9,30 @@
     "bg": "#f8dfbd",
     "s": "12 cm",
     "m": [
-      ["Cotton yarn", "3 skeins"],
-      ["Poly fill", "40 g"]
+      [
+        "Cotton yarn",
+        "3 skeins"
+      ],
+      [
+        "Poly fill",
+        "40 g"
+      ]
     ],
     "d": "A cheerful little chick with a violet bow, made for a sunny shelf, a desk corner, or a small just-because gift.",
     "care": "Spot clean gently. Hand wash cold only if needed, then air dry.",
     "stock": 3,
     "featured": true,
     "active": true,
-    "image": "/images/product-sample.jpeg",
+    "image": "/images/product-sample.webp",
     "imageX": 50,
     "imageY": 50,
     "imageZoom": 112,
-    "ribbons": [0, 1, 2, 3]
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 11,
@@ -33,19 +44,30 @@
     "bg": "#eadcf5",
     "s": "18 cm",
     "m": [
-      ["Cotton yarn", "4 skeins"],
-      ["Recycled stuffing", "60 g"]
+      [
+        "Cotton yarn",
+        "4 skeins"
+      ],
+      [
+        "Recycled stuffing",
+        "60 g"
+      ]
     ],
     "d": "Two soft purple blooms in a hand-crocheted pot — a little piece of spring that never needs watering.",
     "care": "Dust with a soft brush. Keep dry and away from strong direct sun.",
     "stock": 2,
     "featured": true,
     "active": true,
-    "image": "/images/flower-pot.png",
+    "image": "/images/flower-pot.webp",
     "imageX": 50,
     "imageY": 52,
     "imageZoom": 100,
-    "ribbons": [0, 1, 2, 3]
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 12,
@@ -57,19 +79,30 @@
     "bg": "#f5d7e5",
     "s": "8 cm each",
     "m": [
-      ["Cotton yarn", "3 colours"],
-      ["Metal hanging loops", "3"]
+      [
+        "Cotton yarn",
+        "3 colours"
+      ],
+      [
+        "Metal hanging loops",
+        "3"
+      ]
     ],
     "d": "A trio of wavy tentacles in pink, berry, and lavender. Hang them together for a playful little sea-cloud.",
     "care": "Dust gently and reshape the tentacles by hand when needed.",
     "stock": 4,
     "featured": true,
     "active": true,
-    "image": "/images/jellyfish-trio.png",
+    "image": "/images/jellyfish-trio.webp",
     "imageX": 50,
     "imageY": 50,
     "imageZoom": 104,
-    "ribbons": [0, 1, 2, 3]
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 13,
@@ -81,19 +114,30 @@
     "bg": "#e5c7b6",
     "s": "20 cm",
     "m": [
-      ["Milk cotton", "5 skeins"],
-      ["Safety eyes", "2"]
+      [
+        "Milk cotton",
+        "5 skeins"
+      ],
+      [
+        "Safety eyes",
+        "2"
+      ]
     ],
     "d": "A round, warm-brown bear with a tiny stitched smile — the kind of companion that makes a reading nook feel lived in.",
     "care": "Hand wash cold with mild soap. Press in a towel and air dry.",
     "stock": 2,
     "featured": true,
     "active": true,
-    "image": "/images/panda.png",
+    "image": "/images/panda.webp",
     "imageX": 50,
     "imageY": 52,
     "imageZoom": 100,
-    "ribbons": [0, 1, 2, 3]
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 14,
@@ -105,19 +149,30 @@
     "bg": "#f8d8df",
     "s": "6 cm",
     "m": [
-      ["Cotton yarn", "2 colours"],
-      ["Metal key ring", "1"]
+      [
+        "Cotton yarn",
+        "2 colours"
+      ],
+      [
+        "Metal key ring",
+        "1"
+      ]
     ],
     "d": "A bright pink flower with a golden centre for keys, totes, and the little zip pocket that deserves a cheerful detail.",
     "care": "Keep dry. Wipe the metal ring with a soft cloth if needed.",
     "stock": 5,
     "featured": true,
     "active": true,
-    "image": "/images/pink-flower-keychain.png",
+    "image": "/images/pink-flower-keychain.webp",
     "imageX": 50,
     "imageY": 50,
     "imageZoom": 108,
-    "ribbons": [0, 1, 2, 3]
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 15,
@@ -129,18 +184,379 @@
     "bg": "#f6d6ca",
     "s": "7 cm",
     "m": [
-      ["Cotton yarn", "3 colours"],
-      ["Metal key ring", "1"]
+      [
+        "Cotton yarn",
+        "3 colours"
+      ],
+      [
+        "Metal key ring",
+        "1"
+      ]
     ],
     "d": "A tiny red strawberry with a leafy cap and a proper key ring — sweet on a school bag, tote, or pencil pouch.",
     "care": "Keep dry and brush away lint gently.",
     "stock": 6,
     "featured": true,
     "active": true,
-    "image": "/images/strawberry-keychain.png",
+    "image": "/images/strawberry-keychain.webp",
     "imageX": 50,
     "imageY": 50,
     "imageZoom": 105,
-    "ribbons": [0, 1, 2, 3]
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 16,
+    "n": "Garden Bloom Bouquet",
+    "e": "💐",
+    "c": "Botanical",
+    "p": 2499,
+    "lv": 4,
+    "bg": "#f3dfd1",
+    "s": "35 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "6 colours"
+      ],
+      [
+        "Paper wrap",
+        "1 bouquet"
+      ]
+    ],
+    "d": "A lasting bouquet of red, white, and green crochet blooms, wrapped like a small celebration and made to brighten a room.",
+    "care": "Dust with a soft brush. Keep dry and away from strong direct sun.",
+    "stock": 1,
+    "featured": true,
+    "active": true,
+    "image": "/images/bouqutee.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 17,
+    "n": "Cherry Bloom Keychain",
+    "e": "🍒",
+    "c": "Keychains",
+    "p": 399,
+    "lv": 1,
+    "bg": "#f4dfc9",
+    "s": "12 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "3 colours"
+      ],
+      [
+        "Metal clasp",
+        "1"
+      ]
+    ],
+    "d": "Two cheerful crochet blossoms hang from a leafy green stem, ready to clip onto a tote, pouch, or keys.",
+    "care": "Keep dry. Brush away lint gently and reshape the leaves by hand.",
+    "stock": 4,
+    "featured": true,
+    "active": true,
+    "image": "/images/chala.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 18,
+    "n": "Peacock Eye Charm",
+    "e": "🦚",
+    "c": "Keychains",
+    "p": 449,
+    "lv": 1,
+    "bg": "#d9eadf",
+    "s": "9 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "5 colours"
+      ],
+      [
+        "Pearl beads",
+        "14"
+      ]
+    ],
+    "d": "A jewel-toned peacock-eye motif edged in green, finished with a strand of pearl-like beads and a sturdy ring.",
+    "care": "Keep dry and store flat when not in use. Wipe beads with a soft cloth.",
+    "stock": 3,
+    "featured": true,
+    "active": true,
+    "image": "/images/keychain.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 19,
+    "n": "Krishna Pocket Pal",
+    "e": "🪷",
+    "c": "Little gifts",
+    "p": 899,
+    "lv": 3,
+    "bg": "#dce7f1",
+    "s": "14 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "6 colours"
+      ],
+      [
+        "Poly fill",
+        "50 g"
+      ]
+    ],
+    "d": "A bright blue and yellow pocket pal with a peacock feather detail, made as a thoughtful little devotional gift.",
+    "care": "Spot clean gently. Keep the feather detail away from rough surfaces.",
+    "stock": 2,
+    "featured": true,
+    "active": true,
+    "image": "/images/krishna-peacock-keychain.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 20,
+    "n": "Pumpkin Panda",
+    "e": "🐼",
+    "c": "Plush",
+    "p": 1099,
+    "lv": 3,
+    "bg": "#eadcc8",
+    "s": "18 cm",
+    "m": [
+      [
+        "Milk cotton",
+        "5 skeins"
+      ],
+      [
+        "Poly fill",
+        "60 g"
+      ]
+    ],
+    "d": "A soft black-and-white panda in a golden pumpkin cap, with a tiny crossbody pouch for an extra bit of character.",
+    "care": "Hand wash cold with mild soap. Press in a towel and air dry.",
+    "stock": 2,
+    "featured": true,
+    "active": true,
+    "image": "/images/panda-p.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 21,
+    "n": "Peacock Pearl Keychain",
+    "e": "🦚",
+    "c": "Keychains",
+    "p": 499,
+    "lv": 1,
+    "bg": "#d9eadf",
+    "s": "10 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "5 colours"
+      ],
+      [
+        "Pearl beads",
+        "18"
+      ]
+    ],
+    "d": "A second take on the peacock-eye motif with a scalloped green edge and a pearl loop that catches the light.",
+    "care": "Keep dry and store flat when not in use. Wipe beads with a soft cloth.",
+    "stock": 3,
+    "featured": false,
+    "active": true,
+    "image": "/images/peacock-feather-keychain.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 22,
+    "n": "Green Garden Bunny",
+    "e": "🐰",
+    "c": "Plush",
+    "p": 899,
+    "lv": 3,
+    "bg": "#dcebd0",
+    "s": "20 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "4 skeins"
+      ],
+      [
+        "Poly fill",
+        "55 g"
+      ]
+    ],
+    "d": "A floppy-eared bunny in bright green overalls and a leaf-like cap, made for a cheerful shelf or a child's room.",
+    "care": "Hand wash cold with mild soap. Reshape the ears and air dry flat.",
+    "stock": 2,
+    "featured": true,
+    "active": true,
+    "image": "/images/puppy-keychain.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 23,
+    "n": "Strawberry Flower Charm",
+    "e": "🍓",
+    "c": "Keychains",
+    "p": 399,
+    "lv": 1,
+    "bg": "#f6d6ca",
+    "s": "8 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "4 colours"
+      ],
+      [
+        "Metal key ring",
+        "1"
+      ]
+    ],
+    "d": "A plump strawberry topped with a white crochet flower, ready to add a sweet pop of colour to a bag or pouch.",
+    "care": "Keep dry and brush away lint gently.",
+    "stock": 5,
+    "featured": false,
+    "active": true,
+    "image": "/images/straberry.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 24,
+    "n": "Sunny Sunflower Keychain",
+    "e": "🌻",
+    "c": "Keychains",
+    "p": 349,
+    "lv": 1,
+    "bg": "#f7e3a9",
+    "s": "8 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "3 colours"
+      ],
+      [
+        "Metal key ring",
+        "1"
+      ]
+    ],
+    "d": "A bright sunflower with a leafy green back, crocheted to bring a little bit of summer to your everyday carry.",
+    "care": "Keep dry. Wipe the metal ring with a soft cloth if needed.",
+    "stock": 5,
+    "featured": false,
+    "active": true,
+    "image": "/images/sunflower-keychain.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": 25,
+    "n": "Blue Overall Puppy",
+    "e": "🐶",
+    "c": "Keychains",
+    "p": 399,
+    "lv": 1,
+    "bg": "#dce7f1",
+    "s": "7 cm",
+    "m": [
+      [
+        "Cotton yarn",
+        "3 colours"
+      ],
+      [
+        "Metal key ring",
+        "1"
+      ]
+    ],
+    "d": "A tiny white puppy in bright blue overalls with a simple stitched face, made for a school bag, tote, or keys.",
+    "care": "Keep dry and brush away lint gently.",
+    "stock": 5,
+    "featured": false,
+    "active": true,
+    "image": "/images/teddy.webp",
+    "imageX": 50,
+    "imageY": 50,
+    "imageZoom": 100,
+    "ribbons": [
+      0,
+      1,
+      2,
+      3
+    ]
   }
 ]

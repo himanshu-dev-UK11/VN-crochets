@@ -18,10 +18,31 @@ VN crochet is a handmade crochet and art-and-craft storefront prototype. The cur
 The page can be opened directly, but a local server gives the most reliable browser behaviour:
 
 ```powershell
-python -m http.server 8000
+python main.py
 ```
 
-Then open `http://localhost:8000`. On Windows, opening [index.html](index.html) directly is also enough for the current static demo.
+This starts a small Python server, opens `http://localhost:8000` in your browser, and serves the project from the folder containing `main.py`. Press `Ctrl+C` in the terminal to stop it.
+
+If the browser does not open automatically:
+
+```powershell
+python main.py --no-browser
+```
+
+Then open `http://localhost:8000` yourself. You can use another port when 8000 is busy:
+
+```powershell
+python main.py --port 8080
+```
+
+The existing Node server is still available when you need the local catalog and image-upload API used by the admin desk:
+
+```powershell
+npm install
+npm start
+```
+
+That server runs at `http://localhost:3000`. On Windows, opening [index.html](index.html) directly is also enough for the current static demo.
 
 ## Experience map
 

@@ -1,32 +1,29 @@
-const { BlobServiceClient } = require('@azure/storage-blob');
-const { requireAdmin } = require('../shared/auth');
+const {send, readJson, requireAdmin, handler} = require('../shared/http');
+const {saveImage} = require('../shared/storage');
 
-module.exports = async function (context, req) {
-  if (!requireAdmin(req, context)) return;
-  
-  try {
-    const connStr = process.env.STORAGE_CONNECTION_STRING;
-    if (!connStr) {
-      context.res = { status: 500, headers: { 'Content-Type': 'application/json' }, body: { error: 'Storage not configured' } };
-      return;
-    }
+const MAX_BYTES = 4 * 1024 * 1024;
 
-    // Azure Functions v3 doesn't support formData() - parse manually
-    const contentType = req.headers['content-type'] || '';
-    if (!contentType.includes('multipart/form-data')) {
-      context.res = { status: 400, headers: { 'Content-Type': 'application/json' }, body: { error: 'Must be multipart/form-data' } };
-      return;
-    }
+// Check the file's real signature, not just what the browser claims.
+function sniff(buf) {
+  if (buf.length > 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return ['webp', 'image/webp'];
+  if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return ['jpg', 'image/jpeg'];
+  if (buf.length > 8 && buf.toString('hex', 0, 8) === '89504e470d0a1a0a') return ['png', 'image/png'];
+  return null;
+}
 
-    // For now, return a placeholder URL since multipart parsing is complex in v3
-    // In production, you'd use a library like 'busboy' or upload via separate tool
-    context.res = {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: { url: 'https://via.placeholder.com/400x300?text=Upload+image+placeholder' }
-    };
-  } catch (err) {
-    context.log('Error uploading:', err);
-    context.res = { status: 500, headers: { 'Content-Type': 'application/json' }, body: { error: err.message } };
-  }
-};
+module.exports = handler(async function (context, req) {
+  if (!requireAdmin(context, req)) return;
+
+  const body = readJson(req);
+  const data = body && typeof body.data === 'string' ? body.data.replace(/^data:[^,]*,/, '') : '';
+  if (!data) return send(context, 400, {error: 'No image was received.'});
+
+  const buffer = Buffer.from(data, 'base64');
+  if (buffer.length > MAX_BYTES) return send(context, 413, {error: 'That image is larger than 4 MB.'});
+
+  const kind = sniff(buffer);
+  if (!kind) return send(context, 415, {error: 'Use a JPG, PNG or WebP photo.'});
+
+  const url = await saveImage(buffer, kind[0], kind[1]);
+  send(context, 200, {ok: true, url});
+});
