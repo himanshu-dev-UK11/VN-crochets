@@ -15,16 +15,30 @@ const CRED_KEY = 'vnc.admin.cred';
 // the tab. Credentials are only stored when the maker ticks the box.
 
 function getToken() {
-  try { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
+  try {
+    const t = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || '';
+    if (t === 'null' || t === 'undefined' || t.length < 10) return '';
+    return t;
+  } catch {
+    return '';
+  }
 }
 function setToken(token, persistent) {
   try {
     clearToken();
+    if (!token || token === 'null' || token === 'undefined') return;
     (persistent ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
   } catch { /* private mode — the session still works without storage */ }
 }
 function clearToken() {
-  try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    // Also clear the browser's credential mediation state if possible
+    if (navigator.credentials?.preventSilentAccess) {
+      navigator.credentials.preventSilentAccess().catch(() => {});
+    }
+  } catch { /* ignore */ }
 }
 // Only the username is kept by the page. The password is handed to the
 // browser's own password manager (Chrome / Edge: Credential Management API;
@@ -95,8 +109,13 @@ async function api(path, {method = 'GET', body, auth = true} = {}) {
   if (text) { try { data = JSON.parse(text); } catch { data = {error: text.slice(0, 200)}; } }
 
   if (res.status === 401 && auth) {
+    const wasInDesk = !!$('#nav');
     clearToken();
-    showLogin('Your session has ended. Please sign in again.');
+    if (wasInDesk) {
+      showLogin('Your session has ended. Please sign in again.');
+    } else {
+      showLogin();
+    }
     throw new Error('Sign in again to continue.');
   }
   if (!res.ok) {
