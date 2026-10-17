@@ -19,7 +19,16 @@ async function promoteImage(url) {
 
 module.exports = handler(async function (context, req) {
   const method = req.method.toUpperCase();
-  const wantsEverything = !!(req.query && req.query.all === '1') && isAdmin(req.headers);
+  const authHeader = req.headers && (req.headers.authorization || req.headers.Authorization);
+  const wantsEverything = !!(req.query && req.query.all === '1');
+
+  // A browser that sends a token we cannot verify (secret changed, password
+  // changed, expired) must be told so — otherwise it looks like an empty shop.
+  if (authHeader && wantsEverything && !isAdmin(req.headers)) {
+    return send(context, 401, {error: 'Your session has ended. Sign in again.'});
+  }
+
+  const admin = wantsEverything && isAdmin(req.headers);
 
   if (method === 'GET') {
     const store = await readStore();

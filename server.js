@@ -86,8 +86,14 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/catalog', (req, res) => {
   const store = readStore();
+  const wantsEverything = req.query.all === '1';
   // The admin asks for ?all=1 so drafts and the version tag come back too.
-  if (req.query.all === '1' && auth.isAdmin(req.headers)) return res.json(store);
+  // If it sends a token we cannot verify, say so instead of quietly answering
+  // like a shopper — that used to look like an empty catalogue.
+  if (wantsEverything && req.headers.authorization && !auth.isAdmin(req.headers)) {
+    return res.status(401).json({error: 'Your session has ended. Sign in again.'});
+  }
+  if (wantsEverything && auth.isAdmin(req.headers)) return res.json(store);
   res.json({products: store.products.filter((p) => p.active !== false), settings: store.settings});
 });
 

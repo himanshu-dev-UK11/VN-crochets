@@ -99,7 +99,12 @@ async function api(path, {method = 'GET', body, auth = true} = {}) {
     showLogin('Your session has ended. Please sign in again.');
     throw new Error('Sign in again to continue.');
   }
-  if (!res.ok) throw new Error((data && data.error) || `Request failed (${res.status}).`);
+  if (!res.ok) {
+    const err = new Error((data && data.error) || `Request failed (${res.status}).`);
+    err.status = res.status;
+    err.body = data;
+    throw err;
+  }
   return data;
 }
 
@@ -145,6 +150,7 @@ function showLogin(message = '') {
   const errEl = $('#loginErr');
   const noteEl = $('#loginNote');
   const passEl = $('#loginPass');
+  if (!form) return; // nothing to wire (should not happen; keeps the app alive)
 
   // Auto-fill is on the house: when a previous sign-in was saved, signing in
   // is one click. Browsers with their own password manager still work too.
@@ -251,6 +257,20 @@ function settings() {
   return s;
 }
 
+// Copy of the catalogue that ships with the site. Used the first time the desk
+// opens, before anything has been published to storage.
+async function starterCatalogue() {
+  try {
+    const res = await fetch('../data/catalog.json', {cache: 'no-store'});
+    if (!res.ok) return [];
+    const seed = await res.json();
+    const list = Array.isArray(seed) ? seed : seed.products;
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
 async function loadStore() {
   store.notice = '';
   try {
@@ -259,29 +279,35 @@ async function loadStore() {
     store.settings = data.settings || null;
     store.etag = data.etag || null;
     store.reachable = true;
-
-    // First run on a fresh deployment: seed the desk from the catalogue that
-    // ships with the site, so the maker edits real products instead of nothing.
-    if (!store.products.length && !store.settings) {
-      try {
-        const seedRes = await fetch('../data/catalog.json', {cache: 'no-store'});
-        if (seedRes.ok) {
-          const seed = await seedRes.json();
-          const list = Array.isArray(seed) ? seed : seed.products;
-          if (Array.isArray(list) && list.length) {
-            store.products = list;
-            store.notice = 'Loaded the starter catalogue. Press “Publish to shop” to put it live.';
-          }
-        }
-      } catch { /* no starter file — fine */ }
-    }
   } catch (err) {
-    if (err.message === 'Sign in again to continue.') throw err;
-    store.reachable = false;
+    // A 401 has already shown the sign-in screen — that IS the handling.
+    if (err.status === 401 || err.message === 'Sign in again to continue.') throw err;
+
+    // 404 here means "nothing published yet", not a broken shop: either the
+    // storage document does not exist, or the token was not accepted and the
+    // server answered as if a shopper asked. Both are fixed by starting from
+    // the starter catalogue and publishing it.
+    const firstRun = err.status === 404;
+    if (!firstRun) {
+      store.reachable = false;
+      store.products = [];
+      store.settings = null;
+      store.etag = null;
+      store.notice = err.message;
+      return;
+    }
+    store.reachable = true;
     store.products = [];
     store.settings = null;
     store.etag = null;
-    store.notice = err.message;
+  }
+
+  if (!store.products.length && !store.settings) {
+    const seed = await starterCatalogue();
+    if (seed.length) {
+      store.products = seed;
+      store.notice = 'Your shop has no products saved online yet. This is the starter catalogue — press “Publish to shop” to make it live, or add your own products.';
+    }
   }
 }
 
