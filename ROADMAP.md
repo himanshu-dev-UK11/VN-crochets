@@ -14,6 +14,10 @@ This is the living plan for VN crochet. Keep it short, concrete, and ordered by 
 - Refine catalogue content, care details, shipping copy, and custom-order expectations.
 - Add focused browser checks for shop, backpack, quests, and custom request flows.
 
+## 2026-10-17 · Hardened session management
+
+Fixed a persistent "session ended" error loop in the Studio desk caused by stale or invalid tokens in browser storage. Hardened the authentication logic to strictly validate token integrity, improve session clearing, and provide context-aware error messaging, ensuring a smooth sign-in experience across all browsers.
+
 ## 2026-10-16 · Expanded studio photo catalogue
 
 Added the ten remaining product photos from the studio image set to the storefront catalogue, bringing the published collection from six to sixteen products across plush, botanical, little-gift, and keychain categories.
