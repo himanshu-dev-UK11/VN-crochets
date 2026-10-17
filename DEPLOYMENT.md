@@ -73,3 +73,26 @@ On Static Web App → Environment variables → Production:
 
 ---
 **Last Updated:** 2024-10-09
+
+## Admin panel on Azure — one-time setup (required)
+
+The admin panel saves products to Azure Blob Storage. Without these settings the
+live admin cannot save and new products never reach the shop.
+
+In the Azure portal open **Static Web App → Settings → Environment variables**
+(older portals: **Configuration → Application settings**) and add:
+
+| Name | Value |
+|------|-------|
+| `ADMIN_USERNAME` | your admin username |
+| `ADMIN_PASSWORD` | your admin password |
+| `JWT_SECRET` | any random text of 32+ characters |
+| `STORAGE_CONNECTION_STRING` | Storage account → Security + networking → Access keys → Connection string |
+
+Press **Apply**. No redeploy is needed for settings, but give it a minute.
+
+Then open `/admin/`, sign in, and on the Overview press **Publish to shop** once.
+That copies the starter catalogue into storage; from then on every save in the
+admin is live on the shop immediately.
+
+Changing `ADMIN_PASSWORD` signs out every device at once.

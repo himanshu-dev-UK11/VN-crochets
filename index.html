@@ -27,15 +27,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Karla:wght@400..700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=6">
+<link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body>
 
 <a class="skip" href="#shop">Skip to the collection</a>
 
+<div class="announce" id="announce" hidden></div>
+
 <header class="site-head">
   <div class="shell head-in">
-    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">🧶</span>VN crochet</a>
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">🧶</span><span data-brand>VN crochet</span></a>
     <nav class="nav" aria-label="Sections">
       <a href="#shop">Shop</a>
       <a href="#custom">Custom orders</a>
@@ -184,7 +186,7 @@
   <div class="shell">
     <div class="foot-in">
       <div>
-        <div class="foot-brand">VN crochet</div>
+        <div class="foot-brand" data-brand>VN crochet</div>
         <p>A one-person crochet studio in India. Made slowly, checked by hand, posted with care.</p>
       </div>
       <div class="foot-links">
@@ -202,6 +204,6 @@
 <dialog id="cart" aria-label="Your cart"><div class="cart-panel" id="cartPanel"></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script type="module" src="js/app.js?v=6"></script>
+<script type="module" src="js/app.js?v=7"></script>
 </body>
 </html>

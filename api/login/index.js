@@ -4,6 +4,8 @@ const {send, readJson, handler} = require('../shared/http');
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 module.exports = handler(async function (context, req) {
+  if (req.method !== 'POST') return send(context, 405, {error: 'Method not allowed.'});
+
   const ip = clientIp(req.headers);
   const wait = lockedFor(ip);
   if (wait) {

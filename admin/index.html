@@ -5,27 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Studio desk | VN crochet</title>
   <meta name="robots" content="noindex, nofollow">
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Karla:wght@400..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
   <!--
-    The desk shell is injected by admin.js after authentication.
-    An unauthenticated visitor only ever sees the login form below.
+    Sign-in first. admin.js swaps in the desk once you are authenticated;
+    the whole shell is rendered by JS so nothing private sits in the markup.
   -->
-  <div id="app">
-    <!-- Login screen shown by default — replaced by desk shell after login -->
+  <div id="app" aria-live="polite">
     <div class="login-shell">
-      <div class="login-card">
-        <div class="login-brand"><span>🧶</span><strong>VN crochet</strong><small>Studio desk</small></div>
+      <section class="login-card">
+        <div class="login-brand">
+          <span class="login-mark" aria-hidden="true">🧶</span>
+          <div>
+            <strong class="js-brand">VN crochet</strong>
+            <small>Studio desk</small>
+          </div>
+        </div>
         <h1>Sign in</h1>
+        <p class="login-sub">Your shop, your shelf. Everything you publish here goes live on the storefront.</p>
         <p class="login-error" id="loginErr" role="alert" hidden></p>
-        <form id="loginForm">
-          <label>Username<input id="loginUser" type="text" autocomplete="username" required placeholder="admin"></label>
-          <label>Password<input id="loginPass" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
-          <button type="submit" id="loginBtn">Sign in</button>
+        <form id="loginForm" autocomplete="on">
+          <label>
+            <span>Username</span>
+            <input id="loginUser" name="username" type="text" autocomplete="username"
+                   autocapitalize="none" spellcheck="false" required placeholder="your username">
+          </label>
+          <label>
+            <span>Password</span>
+            <span class="pass-wrap">
+              <input id="loginPass" name="password" type="password" autocomplete="current-password"
+                     required placeholder="your password">
+              <button type="button" class="pass-toggle" id="passToggle"
+                      aria-label="Show password" aria-pressed="false">Show</button>
+            </span>
+          </label>
+          <label class="check remember">
+            <input id="loginRemember" type="checkbox" checked>
+            <span>Remember me on this device</span>
+          </label>
+          <button type="submit" id="loginBtn" class="primary wide">Sign in</button>
         </form>
-      </div>
+        <p class="login-note" id="loginNote" hidden></p>
+      </section>
     </div>
   </div>
   <script type="module" src="admin.js"></script>

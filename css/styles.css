@@ -1175,3 +1175,11 @@ dialog::backdrop{
   background:var(--ink);color:var(--paper);font-weight:700;text-decoration:none;
 }
 .skip:focus{left:16px;color:var(--paper)}
+
+/* ── Announcement strip (admin-editable) ───────────────────── */
+.announce{
+  background:var(--rose);color:#fff;text-align:center;
+  font-size:13px;letter-spacing:.02em;padding:9px var(--gut);
+  font-weight:700;
+}
+.announce[hidden]{display:none}

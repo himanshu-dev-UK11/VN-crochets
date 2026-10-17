@@ -45,13 +45,18 @@ function checkCredentials(username, password) {
 
 const b64 = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url');
 
+// remember === true  → 30-day token the panel keeps across restarts.
+// remember === false → 12-hour token the panel drops when the tab closes.
+const SHORT_TTL = 12 * 3600;
+const LONG_TTL = 30 * 24 * 3600;
+
 function issueToken(remember) {
   const now = Math.floor(Date.now() / 1000);
-  const ttl = remember ? 30 * 24 * 3600 : 12 * 3600;
+  const ttl = remember ? LONG_TTL : SHORT_TTL;
   const head = b64({alg: 'HS256', typ: 'JWT'});
   const body = b64({role: 'admin', pv: passwordVersion(), iat: now, exp: now + ttl});
   const sig = crypto.createHmac('sha256', secret()).update(`${head}.${body}`).digest('base64url');
-  return {token: `${head}.${body}.${sig}`, expiresAt: (now + ttl) * 1000};
+  return {token: `${head}.${body}.${sig}`, expiresAt: (now + ttl) * 1000, persistent: remember === true};
 }
 
 function verifyToken(token) {

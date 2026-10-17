@@ -3,6 +3,9 @@
 // so both enforce exactly the same rules.
 
 const DEFAULT_SETTINGS = {
+  brandName: 'VN crochet',
+  tagline: 'Studio desk',
+  currency: '₹',
   heroTitle: 'One thread, a few quiet evenings, one small friend.',
   heroText: "VN crochet is a one-person studio making soft plushies, tiny botanicals and pocket charms in small batches. Browse what's finished, or send an idea and we'll make it for you.",
   heroImage: '/images/product-sample.webp',
@@ -14,12 +17,23 @@ const DEFAULT_SETTINGS = {
     'Custom commissions open',
     'Ships across India'
   ],
+  announcement: '',
   freeShippingFrom: 1500,
   shippingFee: 199,
-  whatsapp: '918923646175'
+  whatsapp: '918923646175',
+  instagram: '',
+  accent: '#b2485f',
+  ribbonColors: ['#fffdf7', '#f7a1b8', '#a9b8f0', '#ffc94d'],
+  ribbonNames: ['Cream', 'Pink', 'Periwinkle', 'Gold'],
+  categories: [
+    {name: 'Plush', icon: '●'},
+    {name: 'Botanical', icon: '✿'},
+    {name: 'Little gifts', icon: '♡'},
+    {name: 'Keychains', icon: '⌁'}
+  ]
 };
 
-const RIBBON_COUNT = 4;
+const MAX_RIBBONS = 6;
 
 class ValidationError extends Error {
   constructor(message) { super(message); this.status = 400; }
@@ -34,17 +48,25 @@ const num = (v, min, max, fallback) => {
   const n = Number(v);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
 };
+const hex = (v, fallback) => (/^#[0-9a-f]{6}$/i.test(String(v || '').trim()) ? String(v).trim() : fallback);
 
 // Only allow image URLs this site actually produces — never javascript: or
-// arbitrary third-party hosts.
+// arbitrary third-party hosts. Data URLs are accepted because the admin can
+// upload before the product is saved; the API swaps them for hosted URLs.
 const IMAGE_PATTERNS = [
   /^\/images\/[\w.-]+$/,
   /^\/api\/image\/[\w.-]+$/,
   /^https:\/\/[a-z0-9]+\.blob\.core\.windows\.net\/[\w./-]+$/
 ];
 function cleanImage(v) {
-  const s = str(v, 300);
-  return IMAGE_PATTERNS.some((re) => re.test(s)) ? s : '';
+  const s = String(v ?? '');
+  // A base64 photo the panel could not upload yet: let it through here so the
+  // catalogue route can store it properly instead of silently dropping it.
+  if (/^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(s)) {
+    return s.length > 6 * 1024 * 1024 ? '' : s;
+  }
+  const trimmed = str(s, 300);
+  return IMAGE_PATTERNS.some((re) => re.test(trimmed)) ? trimmed : '';
 }
 
 function cleanProduct(raw, index) {
@@ -62,17 +84,18 @@ function cleanProduct(raw, index) {
     : [];
 
   const ribbons = Array.isArray(raw.ribbons)
-    ? [...new Set(raw.ribbons.map(Number).filter((r) => Number.isInteger(r) && r >= 0 && r < RIBBON_COUNT))].sort()
+    ? [...new Set(raw.ribbons.map(Number).filter((r) => Number.isInteger(r) && r >= 0 && r < MAX_RIBBONS))].sort()
     : [0, 1, 2, 3];
 
   return {
-    id: int(raw.id, 1, Number.MAX_SAFE_INTEGER, 0),
+    // 0 / missing means "new": cleanProducts hands out the next free id.
+    id: int(raw.id, 0, Number.MAX_SAFE_INTEGER, 0),
     n,
     e: str(raw.e, 8),
     c: str(raw.c, 40) || 'Other',
     p: Math.min(1000000, Math.round(p)),
     lv: int(raw.lv, 1, 5, 1),
-    bg: /^#[0-9a-f]{6}$/i.test(raw.bg || '') ? raw.bg : '#f5eadf',
+    bg: hex(raw.bg, '#f5eadf'),
     s: str(raw.s, 40),
     m: materials,
     d: str(raw.d, 1200),
@@ -102,22 +125,61 @@ function cleanProducts(list) {
   return out;
 }
 
+function cleanCategories(raw) {
+  const list = Array.isArray(raw) ? raw : DEFAULT_SETTINGS.categories;
+  const out = [];
+  const seen = new Set();
+  for (const item of list) {
+    const name = str(typeof item === 'string' ? item : item && item.name, 40);
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    out.push({name, icon: str(item && item.icon, 4) || '•'});
+    if (out.length >= 12) break;
+  }
+  return out.length ? out : DEFAULT_SETTINGS.categories;
+}
+
+function cleanRibbons(colorsRaw, namesRaw) {
+  const colors = Array.isArray(colorsRaw) ? colorsRaw : DEFAULT_SETTINGS.ribbonColors;
+  const names = Array.isArray(namesRaw) ? namesRaw : DEFAULT_SETTINGS.ribbonNames;
+  const out = [];
+  for (let i = 0; i < Math.min(MAX_RIBBONS, Math.max(colors.length, 1)); i++) {
+    const c = hex(colors[i], DEFAULT_SETTINGS.ribbonColors[i] || '#e6d6c6');
+    const n = str(names[i], 20) || DEFAULT_SETTINGS.ribbonNames[i] || `Colour ${i + 1}`;
+    out.push({color: c, name: n});
+  }
+  return out;
+}
+
 function cleanSettings(raw) {
   const src = raw && typeof raw === 'object' ? raw : {};
   const d = DEFAULT_SETTINGS;
+
   const ticker = Array.isArray(src.ticker)
     ? src.ticker.map((t) => str(t, 50)).filter(Boolean).slice(0, 8)
     : d.ticker;
+
   const whatsapp = String(src.whatsapp ?? d.whatsapp).replace(/\D/g, '');
+  const ribbons = cleanRibbons(src.ribbonColors, src.ribbonNames);
+
   return {
+    brandName: str(src.brandName, 30) || d.brandName,
+    tagline: str(src.tagline, 30) || d.tagline,
+    currency: str(src.currency, 3) || d.currency,
     heroTitle: str(src.heroTitle, 90) || d.heroTitle,
     heroText: str(src.heroText, 320) || d.heroText,
     heroImage: cleanImage(src.heroImage) || d.heroImage,
     heroCaption: str(src.heroCaption, 60),
     ticker: ticker.length ? ticker : d.ticker,
+    announcement: str(src.announcement, 120),
     freeShippingFrom: int(src.freeShippingFrom, 0, 100000, d.freeShippingFrom),
     shippingFee: int(src.shippingFee, 0, 10000, d.shippingFee),
-    whatsapp: whatsapp.length >= 10 && whatsapp.length <= 15 ? whatsapp : d.whatsapp
+    whatsapp: whatsapp.length >= 10 && whatsapp.length <= 15 ? whatsapp : d.whatsapp,
+    instagram: str(src.instagram, 60),
+    accent: hex(src.accent, d.accent),
+    ribbonColors: ribbons.map((r) => r.color),
+    ribbonNames: ribbons.map((r) => r.name),
+    categories: cleanCategories(src.categories)
   };
 }
 
@@ -164,6 +226,7 @@ function cleanOrder(raw, products, settings) {
 
 module.exports = {
   DEFAULT_SETTINGS,
+  MAX_RIBBONS,
   ORDER_STATUSES,
   ValidationError,
   cleanProducts,

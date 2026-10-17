@@ -64,6 +64,7 @@ fs.mkdirSync(FILES.images, {recursive: true});
 // ── App ─────────────────────────────────────────────────────────────────────
 const app = express();
 app.use(express.json({limit: '8mb'}));
+app.use(express.urlencoded({extended: false, limit: '8mb'}));
 app.use((req, res, next) => { if (req.path.startsWith('/api/')) res.set('Cache-Control', 'no-store'); next(); });
 
 const requireAdmin = (req, res, next) =>
@@ -85,6 +86,7 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/catalog', (req, res) => {
   const store = readStore();
+  // The admin asks for ?all=1 so drafts and the version tag come back too.
   if (req.query.all === '1' && auth.isAdmin(req.headers)) return res.json(store);
   res.json({products: store.products.filter((p) => p.active !== false), settings: store.settings});
 });
@@ -92,11 +94,13 @@ app.get('/api/catalog', (req, res) => {
 app.put('/api/catalog', requireAdmin, (req, res) => {
   const body = req.body || {};
   const current = readStore();
-  if (body.etag && body.etag !== current.etag) {
+  if (incoming.etag && incoming.etag !== current.etag) {
     return res.status(409).json({error: 'The shop was changed on another device. Reload to get the latest version, then make your change again.'});
   }
-  const products = cleanProducts(body.products);
-  const settings = cleanSettings(body.settings);
+  // Accept {products, settings, etag} and the legacy bare array alike.
+  const incoming = Array.isArray(body) ? {products: body} : body;
+  const products = cleanProducts(incoming.products);
+  const settings = cleanSettings(incoming.settings !== undefined ? incoming.settings : current.settings);
   writeJson(FILES.catalog, products);
   writeJson(FILES.settings, settings);
   const saved = readStore();
@@ -104,9 +108,9 @@ app.put('/api/catalog', requireAdmin, (req, res) => {
 });
 
 app.post('/api/upload', requireAdmin, (req, res) => {
-  const data = String(req.body?.data || '').replace(/^data:[^,]*,/, '');
-  const buf = Buffer.from(data, 'base64');
-  if (!buf.length) return res.status(400).json({error: 'No image was received.'});
+  const raw = String(req.body?.data || '').replace(/^data:[^,]*,/, '');
+  const buf = Buffer.from(raw, 'base64');
+  if (!buf.length) return res.status(400).json({error: 'No image was received. Pick a JPG, PNG or WebP photo and try again.'});
   if (buf.length > 4 * 1024 * 1024) return res.status(413).json({error: 'That image is larger than 4 MB.'});
   const ext = buf.toString('ascii', 8, 12) === 'WEBP' ? 'webp'
     : buf[0] === 0xff && buf[1] === 0xd8 ? 'jpg'

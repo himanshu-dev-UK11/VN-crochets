@@ -16,7 +16,9 @@ const ready = new Map();
 function svc() {
   if (service) return service;
   const conn = process.env.STORAGE_CONNECTION_STRING || process.env.BLOB_CONNECTION_STRING;
-  if (!conn) throw httpError(500, 'The server is missing STORAGE_CONNECTION_STRING.');
+  if (!conn) {
+    throw httpError(503, 'Storage is not configured. In the Azure portal open your Static Web App → Environment variables and add STORAGE_CONNECTION_STRING (the connection string of a Storage account), then redeploy.');
+  }
   service = BlobServiceClient.fromConnectionString(conn);
   return service;
 }
@@ -94,19 +96,41 @@ async function writeBlob(containerName, blobName, buffer, {contentType, cacheCon
 async function readStore() {
   const blob = await readBlob(DATA, STORE);
   if (!blob) return null;
-  return {...JSON.parse(blob.buffer.toString('utf8')), etag: blob.etag};
+  let parsed;
+  try { parsed = JSON.parse(blob.buffer.toString('utf8')); } catch { return null; }
+  return {...parsed, etag: blob.etag};
 }
 
 async function writeStore(doc, etag) {
   const buffer = Buffer.from(JSON.stringify(doc));
+  let current = etag;
+  if (!current) {
+    // First save from this browser: match whatever version is live instead of
+    // demanding the blob not exist (it usually does after the first save).
+    const existing = await readStore();
+    current = existing ? existing.etag : null;
+  }
   return writeBlob(DATA, STORE, buffer, {
     contentType: 'application/json',
     cacheControl: 'no-cache',
-    ...(etag ? {ifMatch: etag} : {ifNoneMatch: '*'})
+    ...(current ? {ifMatch: current} : {ifNoneMatch: '*'})
   });
 }
 
 // ── Images ──────────────────────────────────────────────────────────────────
+
+const DATA_URL = /^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/;
+
+function isDataUrl(value) {
+  return typeof value === 'string' && value.startsWith('data:image/');
+}
+
+function decodeDataUrl(value) {
+  const m = DATA_URL.exec(String(value || ''));
+  if (!m) return null;
+  const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+  return {buffer: Buffer.from(m[2], 'base64'), ext, contentType: `image/${m[1] === 'jpg' ? 'jpeg' : m[1]}`};
+}
 
 async function saveImage(buffer, ext, contentType) {
   const name = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -160,4 +184,8 @@ async function updateOrderStatus(key, status) {
   return {...order, key};
 }
 
-module.exports = {readStore, writeStore, saveImage, readImage, saveOrder, listOrders, updateOrderStatus};
+module.exports = {
+  readStore, writeStore, saveImage, readImage,
+  saveOrder, listOrders, updateOrderStatus,
+  isDataUrl, decodeDataUrl
+};

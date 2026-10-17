@@ -8,3 +8,6 @@ api/local.settings.json
 data/orders.local.json
 *.tmp
 *.zip
+
+# editor / sandbox leftovers
+.fuse_hidden*

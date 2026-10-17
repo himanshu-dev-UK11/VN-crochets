@@ -1,14 +1,12 @@
-import {PRODUCTS, RIBBON_COLORS, RIBBON_NAMES, SETTINGS, settingsLoaded, initCatalog, waLink, ribbonsFor} from './data.js';
+import {PRODUCTS, RIBBON_COLORS, RIBBON_NAMES, SETTINGS, CAT_ICONS, CATEGORIES, settingsLoaded, initCatalog, waLink, ribbonsFor} from './data.js';
 import {loadState, saveState, itemCount, subtotal, pruneCart} from './store.js';
 
 const state = loadState();
 const $ = (sel) => document.querySelector(sel);
-const money = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+const money = (n) => (SETTINGS.currency || '₹') + Math.round(n).toLocaleString('en-IN');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => (
   {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
 ));
-
-const CAT_ICONS = {All:'✦', Plush:'●', Botanical:'✿', 'Little gifts':'♡', Keychains:'⌁'};
 
 /* ── Small helpers ─────────────────────────────────────────── */
 
@@ -106,9 +104,12 @@ function visibleProducts() {
 }
 
 function renderCategories() {
-  const cats = ['All', ...new Set(PRODUCTS.map((p) => p.c).filter(Boolean))];
-  if (!cats.includes(state.cat)) state.cat = 'All';
-  $('#cats').innerHTML = cats.map((cat) => `
+  const known = CATEGORIES.map((c) => c.name);
+  const used = PRODUCTS.map((p) => p.c).filter(Boolean);
+  const cats = ['All', ...known.filter((c) => used.includes(c)), ...used.filter((c) => !known.includes(c))];
+  const unique = [...new Set(cats)];
+  if (!unique.includes(state.cat)) state.cat = 'All';
+  $('#cats').innerHTML = unique.map((cat) => `
     <button class="cat" type="button" data-cat="${esc(cat)}" aria-pressed="${cat === state.cat}">
       <span aria-hidden="true">${CAT_ICONS[cat] || '•'}</span> ${esc(cat)}
     </button>`).join('');
@@ -461,6 +462,21 @@ function renderSettings() {
   }
   document.querySelectorAll('[data-ship]').forEach((el) => { el.textContent = money(S.freeShippingFrom); });
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach((a) => { a.href = waLink(); });
+
+  // Brand name, announcement strip and accent colour are all admin-editable.
+  document.querySelectorAll('[data-brand]').forEach((el) => { if (S.brandName) el.textContent = S.brandName; });
+  if (S.brandName) {
+    document.title = `${S.brandName} — Handmade crochet plushies, botanicals & charms`;
+  }
+  const bar = $('#announce');
+  if (bar && settingsLoaded) {
+    const on = !!S.announcement;
+    bar.hidden = !on;
+    if (on) bar.textContent = S.announcement;
+  }
+  if (S.accent && /^#[0-9a-f]{6}$/i.test(S.accent)) {
+    document.documentElement.style.setProperty('--rose', S.accent);
+  }
 }
 
 $('#yr').textContent = new Date().getFullYear();
